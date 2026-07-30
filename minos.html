@@ -794,9 +794,12 @@ function buildLibraryContext(query){
 }
 
 function dbSave(item){
-  if(!db)return;
+  if(!supabase)return;
   setSyncStatus('busy');
-  db.ref('deepseek-library/'+item.id).set(item).then(function(){setSyncStatus('live');}).catch(function(){setSyncStatus('off');toast('Sync error');});
+  supabase.from('library_items').upsert(item).then(function(res){
+    if(res.error){setSyncStatus('off');toast('Sync error');return;}
+    setSyncStatus('live');
+  }).catch(function(){setSyncStatus('off');toast('Sync error');});
 }
 
 function dbDel(id){
@@ -1037,6 +1040,9 @@ document.getElementById('saveConfirmBtn').addEventListener('click',function(){
   var title=document.getElementById('saveTitle').value.trim()||'Ministry Content';
   var id='item_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
   var item={id:id,title:title,cat:saveCat,content:saveContent,date:Date.now()};
+  items[id]=item;
+  updateBadges();
+  renderLib();
   dbSave(item);
   document.getElementById('saveModal').classList.remove('on');
   toast('Saved to Library');
@@ -1516,8 +1522,8 @@ document.getElementById('promptUpdateBtn').addEventListener('click',function(){
       var directive=data.content[0].text.trim();
       customPromptAddons.push(directive);
       // Save to Supabase so both phones get it
-      if(db){
-        db.ref('minos-custom-prompt').set({addons:customPromptAddons,updated:Date.now()});
+      if(supabase){
+        supabase.from('prompt_addons').upsert({id:1,addons:customPromptAddons,updated:Date.now()});
       }
       status.textContent='Updated successfully. Both phones now use the new instruction.';
       document.getElementById('promptUpdateInp').value='';
