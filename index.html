@@ -28,37 +28,23 @@ body{font-family:'Source Serif 4',serif;background:#1e3a8a;display:flex;flex-dir
 /* LABEL */
 .home-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:16px;text-align:center}
 
-/* DOORS */
-.doors{width:100%;display:flex;flex-direction:column;gap:14px}
-
-.door{width:100%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);border-radius:18px;padding:22px 20px;cursor:pointer;transition:all .2s;text-decoration:none;display:block;-webkit-tap-highlight-color:transparent}
+/* DOOR */
+.door{width:100%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.25);border-radius:18px;padding:22px 20px;cursor:pointer;transition:all .2s;text-decoration:none;display:block;-webkit-tap-highlight-color:transparent}
 .door:active{transform:scale(.98);background:rgba(255,255,255,.14)}
-.door-claude{border-color:rgba(255,255,255,.25)}
-.door-deepseek{border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.05)}
-
 .door-header{display:flex;align-items:center;gap:14px;margin-bottom:10px}
-.door-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
-.door-icon-claude{background:rgba(255,255,255,.15)}
-.door-icon-deepseek{background:rgba(251,191,36,.2)}
+.door-icon{width:46px;height:46px;border-radius:12px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
 .door-name{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#ffffff;letter-spacing:.5px}
 .door-engine{font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;font-weight:600;letter-spacing:.3px}
-
 .door-desc{font-size:13px;color:rgba(255,255,255,.6);line-height:1.65;margin-bottom:12px}
-
 .door-tags{display:flex;flex-wrap:wrap;gap:6px}
 .door-tag{font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;letter-spacing:.3px}
-.door-tag-claude{background:rgba(255,255,255,.12);color:rgba(255,255,255,.75)}
-.door-tag-deepseek{background:rgba(251,191,36,.15);color:#fbbf24}
-
+.door-tag{background:rgba(255,255,255,.12);color:rgba(255,255,255,.75)}
 .door-arrow{display:flex;align-items:center;justify-content:flex-end;margin-top:14px}
-.door-arrow-inner{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:.3px}
-.door-claude .door-arrow-inner{background:rgba(255,255,255,.15)}
-.door-deepseek .door-arrow-inner{background:rgba(251,191,36,.2);border-color:rgba(251,191,36,.3);color:#fbbf24}
+.door-arrow-inner{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:.3px}
 
 /* FOOTER */
 .home-footer{margin-top:28px;font-size:12px;color:rgba(255,255,255,.3);text-align:center;line-height:1.6}
 
-/* SMALL SCREEN */
 @media(max-height:680px){
   .home-logo{font-size:40px}
   .home-pastor{margin-bottom:20px}
@@ -70,68 +56,35 @@ body{font-family:'Source Serif 4',serif;background:#1e3a8a;display:flex;flex-dir
 </style>
 </head>
 <body>
-
 <div class="home-wrap">
-
   <div class="home-logo">MINOS</div>
   <div class="home-tag">Ministry Intelligence &amp; Operational System</div>
   <div class="home-church">Light Assembly Bible Church</div>
   <div class="home-pastor">Rev. Emmanuel Udoh &middot; Ikot Ambon, Akwa Ibom</div>
-
   <div class="home-divider"></div>
-
-  <div class="home-label">Choose your dashboard</div>
-
-  <div class="doors">
-
-    <!-- CLAUDE DOOR -->
-    <a class="door door-claude" href="minos-claude.html">
-      <div class="door-header">
-        <div class="door-icon door-icon-claude">&#129302;</div>
-        <div>
-          <div class="door-name">MINOS Claude</div>
-          <div class="door-engine">Powered by Anthropic Claude</div>
-        </div>
+  <div class="home-label">Launch your dashboard</div>
+  <a class="door" href="minos.html">
+    <div class="door-header">
+      <div class="door-icon">M</div>
+      <div>
+        <div class="door-name">MINOS</div>
+        <div class="door-engine">Powered by DeepSeek AI</div>
       </div>
-      <div class="door-desc">Sermons, devotionals, WhatsApp broadcasts, partner content, prayer guides, workers class, and all pastoral ministry content.</div>
-      <div class="door-tags">
-        <span class="door-tag door-tag-claude">Sunday Message</span>
-        <span class="door-tag door-tag-claude">Sermon Notes</span>
-        <span class="door-tag door-tag-claude">WhatsApp</span>
-        <span class="door-tag door-tag-claude">Devotionals</span>
-        <span class="door-tag door-tag-claude">Prayer Guide</span>
-      </div>
-      <div class="door-arrow"><span class="door-arrow-inner">Enter &rarr;</span></div>
-    </a>
-
-    <!-- DEEPSEEK DOOR -->
-    <a class="door door-deepseek" href="minos-deepseek.html">
-      <div class="door-header">
-        <div class="door-icon door-icon-deepseek">&#128270;</div>
-        <div>
-          <div class="door-name">MINOS DeepSeek</div>
-          <div class="door-engine">Powered by DeepSeek AI</div>
-        </div>
-      </div>
-      <div class="door-desc">Deep biblical study, Greek and Hebrew word studies, scholarly research, theological frameworks, and long-form academic content.</div>
-      <div class="door-tags">
-        <span class="door-tag door-tag-deepseek">Deep Study</span>
-        <span class="door-tag door-tag-deepseek">Greek &amp; Hebrew</span>
-        <span class="door-tag door-tag-deepseek">Scholarly</span>
-        <span class="door-tag door-tag-deepseek">Theology</span>
-        <span class="door-tag door-tag-deepseek">Research</span>
-      </div>
-      <div class="door-arrow"><span class="door-arrow-inner">Enter &rarr;</span></div>
-    </a>
-
-  </div>
-
+    </div>
+    <div class="door-desc">Sermons, deep study, WhatsApp devotionals, Facebook posts, partner content, prayer guides, and all pastoral ministry — one unified assistant with library memory.</div>
+    <div class="door-tags">
+      <span class="door-tag">Sunday Message</span>
+      <span class="door-tag">Deep Study</span>
+      <span class="door-tag">WhatsApp</span>
+      <span class="door-tag">Devotionals</span>
+      <span class="door-tag">Prayer Guide</span>
+      <span class="door-tag">Theology</span>
+    </div>
+    <div class="door-arrow"><span class="door-arrow-inner">Enter &rarr;</span></div>
+  </a>
   <div class="home-footer">
-    Both dashboards share the same design and Read Aloud.<br>
-    Libraries are kept separate.
+    Unified assistant — sermons, deep study, devotionals, and more in one place.
   </div>
-
 </div>
-
 </body>
 </html>

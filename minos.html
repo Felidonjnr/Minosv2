@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>MINOS DeepSeek - Light Assembly Bible Church</title>
+<title>MINOS - Light Assembly Bible Church</title>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -91,6 +91,8 @@ body{font-family:'Source Serif 4',serif;font-size:17px;line-height:1.6;backgroun
 .quick-row{display:flex;gap:8px;min-width:max-content}
 .qbtn{background:var(--grey);border:2px solid var(--border);border-radius:24px;padding:7px 14px;font-family:'Source Serif 4',serif;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .2s}
 .qbtn:active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.qbtn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.mode-ind{font-size:10px;color:var(--text3);padding:2px 14px 0;letter-spacing:.5px;font-weight:600}
 .chat-msgs{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;background:var(--grey);min-height:0}
 .msg-wrap{display:flex;gap:10px;margin-bottom:14px}
 .msg-wrap.user{flex-direction:row-reverse}
@@ -275,7 +277,7 @@ body{font-family:'Source Serif 4',serif;font-size:17px;line-height:1.6;backgroun
       <label class="su-lbl">Paste your key below</label>
       <input class="su-inp" id="apiKeyInput" type="text" placeholder="sk-..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
     </div>
-    <button class="su-btn" id="launchBtn">&#9889; Launch MINOS DeepSeek</button>
+    <button class="su-btn" id="launchBtn">&#9889; Launch MINOS</button>
     <div class="su-err" id="setupErr">Please paste a valid Anthropic API key</div>
   </div>
 </div>
@@ -294,7 +296,7 @@ body{font-family:'Source Serif 4',serif;font-size:17px;line-height:1.6;backgroun
   <div class="hdr">
     <div class="hdr-in">
       <div class="hdr-left">
-        <div class="hdr-logo">MINOS <span style="font-size:11px;background:rgba(251,191,36,.3);padding:2px 8px;border-radius:8px;letter-spacing:1px;vertical-align:middle;color:#fbbf24">DEEPSEEK</span></div>
+        <div class="hdr-logo">MINOS</div>
         <div class="hdr-sep"></div>
         <div class="hdr-info">Light Assembly Bible Church<br>Rev. Emmanuel Udoh &middot; Ikot Ambon</div>
       </div>
@@ -322,6 +324,7 @@ body{font-family:'Source Serif 4',serif;font-size:17px;line-height:1.6;backgroun
     <!-- CHAT PAGE -->
     <div class="page active" id="page-chat">
       <div class="quick-bar">
+        <div id="modeInd" class="mode-ind">&#128172; Free Chat</div>
         <div class="quick-row">
           <button class="qbtn" data-q="morning">&#9728; Morning Brief</button>
           <button class="qbtn" data-q="study">&#128269; Deep Study</button>
@@ -331,10 +334,6 @@ body{font-family:'Source Serif 4',serif;font-size:17px;line-height:1.6;backgroun
           <button class="qbtn" data-q="facebook">&#128196; Facebook Posts</button>
           <button class="qbtn" data-q="partner">&#129309; Partner Devotional</button>
           <button class="qbtn" data-q="prayer">&#128591; Prayer Guide</button>
-          <button class="qbtn" data-q="greek">&#9001; Greek Study</button>
-          <button class="qbtn" data-q="hebrew">&#9001; Hebrew Study</button>
-          <button class="qbtn" data-q="scholars">&#127891; Scholars</button>
-          <button class="qbtn" data-q="theology">&#9904; Theology</button>
         </div>
       </div>
       <div class="chat-msgs" id="chatMsgs">
@@ -461,6 +460,9 @@ body{font-family:'Source Serif 4',serif;font-size:17px;line-height:1.6;backgroun
     <label class="sht-lbl">Google Cloud TTS Key (Read Aloud)</label>
     <input class="sht-inp" id="settingsGcp" type="password" placeholder="AIzaSy...">
     <div style="font-size:12px;color:var(--text3);margin-bottom:4px">Get from console.cloud.google.com &rarr; Cloud Text-to-Speech API</div>
+    <label class="sht-lbl">Brave Search API Key (Internet Search)</label>
+    <input class="sht-inp" id="settingsSearchKey" type="password" placeholder="BSA...">
+    <div style="font-size:12px;color:var(--text3);margin-bottom:4px">Get free from api.search.brave.com (2000 queries/month free)</div>
     <button class="sht-save" id="settingsSave">Save &amp; Reload</button>
     <div style="margin-top:24px;border-top:2px solid var(--border);padding-top:18px">
       <div class="sht-lbl" style="margin-top:0">AI Prompt Updater</div>
@@ -500,7 +502,6 @@ body{font-family:'Source Serif 4',serif;font-size:17px;line-height:1.6;backgroun
   <button id="recDismiss" style="position:absolute;top:10px;right:12px;background:none;border:none;color:rgba(255,255,255,.4);font-size:18px;cursor:pointer;line-height:1">&#10005;</button>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <!-- SMART CONTEXT POPUP -->
 <div id="contextOv" style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:850;display:none;align-items:flex-end;justify-content:center">
   <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:540px;padding:24px 20px 44px">
@@ -520,19 +521,13 @@ body{font-family:'Source Serif 4',serif;font-size:17px;line-height:1.6;backgroun
   <button id="recDismiss" style="position:absolute;top:10px;right:12px;background:none;border:none;color:rgba(255,255,255,.4);font-size:18px;cursor:pointer;line-height:1">&#10005;</button>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
 
 // == CONFIG ==
-var FBC={
-  apiKey:'AIzaSyBahFRyVWBjc0yHIQlaKCFvYwcUZjIpuGA',
-  authDomain:'minos-dashboard.firebaseapp.com',
-  databaseURL:'https://minos-dashboard-default-rtdb.firebaseio.com',
-  projectId:'minos-dashboard',
-  storageBucket:'minos-dashboard.firebasestorage.app',
-  messagingSenderId:'847823517233',
-  appId:'1:847823517233:web:d9eb5237172856a4870710'
-};
+var SUPABASE_URL='https://wsotdmzolzysxcjaehpw.supabase.co';
+var SUPABASE_KEY='eyJhbG…B5gk';
+var supabase=null;
 var DS_URL='https://api.deepseek.com/chat/completions';
 var DS_CHAT='deepseek-chat';var DS_REASON='deepseek-reasoner';
 var COST={chat:{in:0.14,out:0.28},reason:{in:0.55,out:2.19}};
@@ -573,6 +568,7 @@ function buildSYS(){
   var today=day+", "+date+" "+month+" "+year;
   var schedules={"Sunday":"Sunday -- Workers Class 7am then Main Service.","Monday":"Monday -- Rest and reflection day.","Tuesday":"Tuesday -- Midweek preparation begins.","Wednesday":"Wednesday -- Prayer Meeting tonight.","Thursday":"Thursday -- Midweek Word and Communion tonight.","Friday":"Friday -- Prayer Meeting tonight.","Saturday":"Saturday -- Community Outreach day."};
   var todaynote=schedules[day]||"";
+  var modeLabel={'chat':'General','study':'Deep Study','sunday':'Sunday Message','notes':'Sermon Notes','whatsapp':'WhatsApp Devotional','facebook':'Facebook Posts','partner':'Partner Devotional','prayer':'Prayer Guide','morning':'Morning Brief','greek':'Greek Study','hebrew':'Hebrew Study'}[currentMode]||'General';
   var lines=[
     "You are MINOS -- Ministry Intelligence & Operational System -- serving Rev. Emmanuel Udoh, senior pastor of Light Assembly Bible Church, Ikot Ambon, Akwa Ibom State, Nigeria.",
     "",
@@ -676,7 +672,6 @@ function buildSYS(){
 var SYS="";
 
 // == STATE ==
-var db=null;
 var items={};
 var activeCat='all';
 var libQ='';
@@ -688,12 +683,67 @@ var chatHistory=[];
 var generating=false;
 var sessionCostTotal=0;
 var lastCost=0;
+var currentMode='chat';
+
+var MODE_SEARCH={
+  study:'bible study commentary exegesis greek hebrew theological',
+  sunday:'sermon outline preaching illustration biblical context',
+  notes:'sermon notes commentary key points preaching',
+  whatsapp:'daily devotional christian inspiration bible reading',
+  facebook:'christian social media faith posts engagement bible',
+  partner:'covenant partnership faith stewardship devotional',
+  prayer:'prayer guide intercession revival scripture prayers',
+  morning:'daily bible verse morning devotion christian start',
+  greek:'greek word study lexicon new testament biblical greek',
+  hebrew:'hebrew word study lexicon old testament biblical hebrew',
+  chat:''
+};
+
+// == USAGE TRACKING ==
+var usageData={
+  modeCount:{},totalQueries:0,savedItems:0,firstUse:Date.now(),lastUse:Date.now(),favModes:[],dayPattern:{}
+};
+
+function loadUsage(){
+  try{var saved=ls('minos_usage');if(saved)usageData=JSON.parse(saved);}catch(e){}
+}
+
+function saveUsage(){
+  lss('minos_usage',JSON.stringify(usageData));
+  if(supabase){try{supabase.from('usage_data').update({data:usageData}).eq('id',1);}catch(e){}}
+}
+
+function trackUse(mode){
+  usageData.totalQueries++;
+  usageData.lastUse=Date.now();
+  if(mode&&mode!=='chat')usageData.modeCount[mode]=(usageData.modeCount[mode]||0)+1;
+  var day=new Date().getDay();
+  usageData.dayPattern[day]=(usageData.dayPattern[day]||0)+1;
+  var sorted=Object.keys(usageData.modeCount).sort(function(a,b){return usageData.modeCount[b]-usageData.modeCount[a];});
+  usageData.favModes=sorted.slice(0,3);
+  saveUsage();
+}
+
+function getFavMode(){
+  return usageData.favModes.length?usageData.favModes[0]:null;
+}
+
+function getPersonalizedRec(){
+  if(usageData.totalQueries>3){
+    var fav=getFavMode();
+    if(fav)return fav;
+  }
+  return null;
+}
+
+loadUsage();
 
 // == STORAGE ==
 function ls(k){try{return localStorage.getItem(k)||'';}catch(e){return '';}}
 function lss(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 function getKey(){return ls('minos_ds_ak');}
 function getGcp(){return ls('minos_gcp');}
+function getSearchKey(){return ls('minos_search_key');}
 
 // == TOAST ==
 var toastTimer=null;
@@ -728,28 +778,44 @@ function launch(){
   document.getElementById('app').classList.add('on');
   setTimeout(function(){
     document.getElementById('conn').classList.remove('on');
-    initFirebase();
-    toast('MINOS DeepSeek is live');
+    initSupabase();
+    toast('MINOS is live');
   },1200);
 }
 
 window.addEventListener('load',function(){
   if(getKey()&&getKey().length>20){launch();}
 });
-// == FIREBASE ==
-function initFirebase(){
+// == INIT ==
+function initSupabase(){
   try{
-    if(!firebase.apps.length)firebase.initializeApp(FBC);
-    db=firebase.database();
-    db.ref('deepseek-library').on('value',function(snap){
-      items=snap.val()||{};
-      updateBadges();
-      renderLib();
-    });
-    setSyncStatus('live');
+    supabase=supabase||createClient(SUPABASE_URL,SUPABASE_KEY);
+    // Load library items
+    supabase.from('library_items').select('*').then(function(res){
+      if(res.data){
+        items={};
+        res.data.forEach(function(i){items[i.id]=i;});
+        updateBadges();
+        renderLib();
+      }
+      setSyncStatus('live');
+    }).catch(function(){setSyncStatus('off');toast('Supabase error -- check connection');});
+    // Subscribe to realtime changes
+    supabase.channel('library_changes')
+      .on('postgres_changes',{event:'*',schema:'public',table:'library_items'},function(){
+        supabase.from('library_items').select('*').then(function(res){
+          if(res.data){
+            items={};
+            res.data.forEach(function(i){items[i.id]=i;});
+            updateBadges();
+            renderLib();
+          }
+        });
+      })
+      .subscribe();
   }catch(e){
     setSyncStatus('off');
-    toast('Firebase error -- check connection');
+    toast('Supabase error -- check connection');
   }
 }
 
@@ -762,15 +828,225 @@ function setSyncStatus(st){
   else txt.textContent='offline';
 }
 
+// == RAG — LIBRARY SEARCH ==
+function searchLibrary(query){
+  var results=[];
+  var arr=Object.values(items);
+  if(!arr.length)return results;
+  var q=query.toLowerCase();
+  var words=q.split(/\s+/).filter(function(w){return w.length>2;});
+  if(!words.length)return results;
+  arr.forEach(function(item){
+    var score=0;
+    var title=(item.title||'').toLowerCase();
+    var content=(item.content||'').toLowerCase();
+    words.forEach(function(w){
+      if(title.includes(w))score+=3;
+      if(content.includes(w))score+=1;
+    });
+    if(score>0)results.push({item:item,score:score});
+  });
+  results.sort(function(a,b){return b.score-a.score;});
+  return results.slice(0,5);
+}
+
+function buildLibraryContext(query){
+  var found=searchLibrary(query);
+  if(!found.length)return '';
+  var ctx='\n\n---\nRELEVANT CONTENT FROM YOUR LIBRARY (saved sermons, devotionals, etc.):\n';
+  found.forEach(function(r,i){
+    var cfg=CATS[r.item.cat]||CATS.other;
+    ctx+='\n['+(i+1)+'] "'+(r.item.title||'Untitled')+'" -- '+cfg.label;
+    var snippet=(r.item.content||'').slice(0,400);
+    if(snippet)ctx+='\n'+snippet;
+  });
+  ctx+='\n---\nUse the library content above where relevant to inform your response.\n';
+  return ctx;
+}
+
+// == WEB SEARCH ==
+function webSearch(query){
+  var searchKey=getSearchKey();
+  if(!searchKey)return Promise.resolve('');
+  // Mode-specific search enrichment
+  var modeQuery=MODE_SEARCH[currentMode]||'';
+  var searchQ=modeQuery?(query+' '+modeQuery):query;
+  var BRAVE_URL='https://api.search.brave.com/res/v1/web/search?q='+encodeURIComponent(searchQ)+'&count=5';
+  return fetch(BRAVE_URL,{headers:{'Accept':'application/json','Accept-Encoding':'gzip','X-Subscription-Token':searchKey}})
+  .then(function(r){if(!r.ok)return'';return r.json();})
+  .then(function(data){
+    if(!data||!data.web||!data.web.results||!data.web.results.length)return'';
+    var ctx='\n\n---\nINTERNET RESOURCES (from web search):\n';
+    data.web.results.forEach(function(r,i){
+      ctx+='\n['+(i+1)+'] '+r.title+'\n'+r.snippet;
+    });
+    ctx+='\n---\nUse the internet resources above where relevant. Cite sources by number.\n';
+    return ctx;
+  })
+  .catch(function(){return'';});
+}
+
+function buildContexts(text){
+  var libraryCtx=buildLibraryContext(text);
+  // web search happens asynchronously in sendMessage
+  return libraryCtx;
+}
+
+// == BIBLE API — SCRIPTURE LOOKUP ==
+var BOOK_ALIASES={
+  'ps':'Psalms','psa':'Psalms','psalm':'Psalms',
+  'gen':'Genesis','genesis':'Genesis',
+  'exo':'Exodus','ex':'Exodus',
+  'lev':'Leviticus','lv':'Leviticus',
+  'num':'Numbers','nm':'Numbers',
+  'deu':'Deuteronomy','dt':'Deuteronomy',
+  'josh':'Joshua','jos':'Joshua',
+  'judg':'Judges','jdg':'Judges',
+  'rut':'Ruth','ruth':'Ruth',
+  'sam':'Samuel','1sam':'1 Samuel','2sam':'2 Samuel',
+  'kgs':'Kings','1kgs':'1 Kings','2kgs':'2 Kings',
+  'chr':'Chronicles','1chr':'1 Chronicles','2chr':'2 Chronicles',
+  'ezr':'Ezra','ezra':'Ezra',
+  'neh':'Nehemiah','nehemiah':'Nehemiah',
+  'job':'Job',
+  'prov':'Proverbs','prv':'Proverbs',
+  'eccl':'Ecclesiastes','ecc':'Ecclesiastes',
+  'song':'Song of Solomon','sos':'Song of Solomon',
+  'isa':'Isaiah','isaiah':'Isaiah',
+  'jer':'Jeremiah','jeremiah':'Jeremiah',
+  'lam':'Lamentations','lamentations':'Lamentations',
+  'ezek':'Ezekiel','ezk':'Ezekiel',
+  'dan':'Daniel','daniel':'Daniel',
+  'hos':'Hosea','hosea':'Hosea',
+  'joel':'Joel',
+  'amos':'Amos',
+  'obad':'Obadiah','obadiah':'Obadiah',
+  'jon':'Jonah','jonah':'Jonah',
+  'mic':'Micah','micah':'Micah',
+  'nah':'Nahum','nahum':'Nahum',
+  'hab':'Habakkuk','habakkuk':'Habakkuk',
+  'zeph':'Zephaniah','zephaniah':'Zephaniah',
+  'hag':'Haggai','haggai':'Haggai',
+  'zech':'Zechariah','zechariah':'Zechariah',
+  'mal':'Malachi','malachi':'Malachi',
+  'matt':'Matthew','mt':'Matthew',
+  'mark':'Mark','mk':'Mark',
+  'luke':'Luke','lk':'Luke',
+  'john':'John','jn':'John',
+  'acts':'Acts','act':'Acts',
+  'rom':'Romans','romans':'Romans',
+  'cor':'Corinthians','1cor':'1 Corinthians','2cor':'2 Corinthians',
+  'gal':'Galatians','galatians':'Galatians',
+  'eph':'Ephesians','ephesians':'Ephesians',
+  'phil':'Philippians','philippians':'Philippians',
+  'col':'Colossians','colossians':'Colossians',
+  'thess':'Thessalonians','1thess':'1 Thessalonians','2thess':'2 Thessalonians',
+  'tim':'Timothy','1tim':'1 Timothy','2tim':'2 Timothy',
+  'titus':'Titus','tit':'Titus',
+  'philem':'Philemon','phm':'Philemon',
+  'heb':'Hebrews','hebrews':'Hebrews',
+  'james':'James','jas':'James',
+  'pet':'Peter','1pet':'1 Peter','2pet':'2 Peter',
+  'jn':'John','1jn':'1 John','2jn':'2 John','3jn':'3 John',
+  'jude':'Jude',
+  'rev':'Revelation','revelation':'Revelation'
+};
+var BOOK_NAMES=Object.keys(BOOK_ALIASES);
+
+function detectReferences(text){
+  var found=[];
+  var t=text.replace(/[\u2013\u2014]/g,'-').replace(/\s+/g,' ');
+  // Match patterns like "John 3:16", "Jer 18:1-6", "Psalm 23", "1 Cor 13:4-7"
+  var bookPattern=Object.keys(BOOK_ALIASES).sort(function(a,b){return b.length-a.length;}).join('|');
+  // Skip common words that could be mistaken
+  var skipWords=['mark','john','acts','jude','job','amos','joel','amos','james','peter','titus','luke'];
+  // Pattern: optional number + book name + chapter:verse (or just chapter)
+  var refs=t.match(new RegExp('(?:^|\s)(\\d\\s)?('+bookPattern+')\\.?\\s*(\\d+)(?::(\\d+)(?:-(\\d+))?)?','gi'));
+  if(refs){
+    refs.forEach(function(r){
+      r=r.trim();
+      // Skip if it's just a common word (e.g. "Mark" as a name)
+      var bookAbbr=r.replace(/^\d\s/,'').replace(/[\d:-].*/,'').replace(/\.$/,'').toLowerCase();
+      if(skipWords.indexOf(bookAbbr)===-1||found.length===0){
+        found.push(r);
+      }
+    });
+  }
+  return found;
+}
+
+function normalizeReference(ref){
+  ref=ref.trim();
+  // Match optional number prefix + book + chapter:verse
+  var m=ref.match(/^(\d\s)?(.+?)\s*(\d+)(?::(\d+)(?:-(\d+))?)?$/i);
+  if(!m)return null;
+  var prefix=m[1]||'';
+  var bookRaw=m[2].toLowerCase().replace(/\.$/,'').trim();
+  var book=BOOK_ALIASES[bookRaw]||(bookRaw.charAt(0).toUpperCase()+bookRaw.slice(1));
+  var chapter=m[3];
+  var verseStart=m[4]||null;
+  var verseEnd=m[5]||null;
+  return {book:book,chapter:chapter,verseStart:verseStart,verseEnd:verseEnd,original:ref};
+}
+
+function fetchScripture(refObj){
+  var refStr=refObj.book.replace(/\s+/g,'+')+'+'+refObj.chapter;
+  if(refObj.verseStart)refStr+='%3A'+refObj.verseStart;
+  if(refObj.verseEnd)refStr+='-'+refObj.verseEnd;
+  return fetch('https://bible-api.com/'+refStr+'?translation=kjv')
+    .then(function(r){if(!r.ok)return null;return r.json();})
+    .then(function(data){
+      if(!data||!data.text)return null;
+      return {
+        reference:data.reference||refObj.original,
+        text:data.text,
+        verses:data.verses||[]
+      };
+    })
+    .catch(function(){return null;});
+}
+
+function buildBibleContext(text){
+  var refs=detectReferences(text);
+  if(!refs.length)return '';
+  // Normalize each reference and fetch unique ones
+  var seen={};
+  var unique=[];
+  refs.forEach(function(r){
+    var n=normalizeReference(r);
+    if(n&&!seen[n.original]){seen[n.original]=true;unique.push(n);}
+  });
+  if(!unique.length)return '';
+  // We fetch synchronously-ish — actually async, so handled in sendMessage chain
+  return unique; // return array of ref objects for sendMessage to fetch
+}
+
+function fetchAllScriptures(refs){
+  if(!refs||!refs.length)return Promise.resolve('');
+  var promises=refs.map(function(r){return fetchScripture(r);});
+  return Promise.all(promises).then(function(results){
+    var valid=results.filter(function(r){return r!==null;});
+    if(!valid.length)return '';
+    var ctx='\n\n---\nSCRIPTURE REFERENCES (from Bible API):\n';
+    valid.forEach(function(s){
+      ctx+='\n'+s.reference+'\n"'+s.text.trim()+'"\n';
+    });
+    ctx+='\n---\nUse the scripture text above accurately in your response.\n';
+    return ctx;
+  });
+}
+
 function dbSave(item){
-  if(!db)return;
+  usageData.savedItems++;
+  saveUsage();
   setSyncStatus('busy');
-  db.ref('deepseek-library/'+item.id).set(item).then(function(){setSyncStatus('live');}).catch(function(){setSyncStatus('off');toast('Sync error');});
+  if(!supabase){setSyncStatus('off');toast('Supabase not connected');return;}
+  supabase.from('library_items').upsert(item).then(function(){setSyncStatus('live');}).catch(function(){setSyncStatus('off');toast('Sync error');});
 }
 
 function dbDel(id){
-  if(!db)return;
-  db.ref('deepseek-library/'+id).remove();
+  if(!supabase)return;
+  supabase.from('library_items').delete().eq('id',id).then(function(){setSyncStatus('live');}).catch(function(){setSyncStatus('off');toast('Sync error');});
 }
 
 // == TABS ==
@@ -785,12 +1061,32 @@ document.querySelectorAll('.tab').forEach(function(tab){
 });
 
 // == QUICK BUTTONS ==
+function setMode(mode){
+  currentMode=mode||'chat';
+  var labels={'morning':'Morning Brief','study':'Deep Study','sunday':'Sunday Message','notes':'Sermon Notes','whatsapp':'WhatsApp Devotional','facebook':'Facebook Posts','partner':'Partner Devotional','prayer':'Prayer Guide','chat':'Free Chat','greek':'Greek Study','hebrew':'Hebrew Study'};
+  var ind=document.getElementById('modeInd');
+  if(ind){
+    var icons={'morning':'☀','study':'🔍','sunday':'⛪','notes':'📝','whatsapp':'📱','facebook':'📄','partner':'🤝','prayer':'🙏','chat':'💬','greek':'α','hebrew':'א'};
+    ind.innerHTML=(icons[mode]||'💬')+' '+(labels[mode]||'Free Chat');
+  }
+  document.querySelectorAll('.qbtn').forEach(function(b){
+    b.classList.toggle('active',b.dataset.q===mode);
+  });
+}
+
 document.querySelectorAll('.qbtn').forEach(function(btn){
   btn.addEventListener('click',function(){
-    var q=QUICK[this.dataset.q]||'';
+    var mode=this.dataset.q;
+    setMode(mode);
+    var q=QUICK[mode]||'';
     if(q){
-      document.getElementById('chatInp').value=q;
-      sendMessage();
+      if(mode==='morning'){
+        document.getElementById('chatInp').value=q;
+        sendMessage();
+      }else{
+        document.getElementById('chatInp').value=q;
+        sendMessage();
+      }
     }
   });
 });
@@ -846,9 +1142,18 @@ function sendMessage(){
   generating=true;
   document.getElementById('sendBtn').disabled=true;
   showTyping();
+  trackUse(currentMode);
   var model=pickModel(text);
-  var dsMessages=[{role:'system',content:buildSYS()}].concat(chatHistory.slice(-10));
-  fetch(DS_URL,{
+  var libCtx=buildLibraryContext(text);
+  var bibleRefs=buildBibleContext(text);
+  webSearch(text).then(function(webCtx){
+    return fetchAllScriptures(bibleRefs).then(function(bibleCtx){
+      var fullCtx=buildSYS()+libCtx+webCtx+bibleCtx;
+  // Add chain-of-thought reasoning instructions for Fable-class quality
+  var reasoning='\n\n---\nREASONING INSTRUCTIONS (follow strictly):\n1. First plan the response structure in your mind based on the mode and context above.\n2. Ensure every response includes: church context (Light Assembly, Ikot Ambon), scripture where relevant, pastoral voice.\n3. Generate complete, never cut short. Use full markdown formatting.\n4. For deep study: include word studies, scholarly references, historical context.\n5. For prayer/sermon: include specific scripture, application, local context.\n---\n';
+  var fullSys=fullCtx+reasoning;
+      var dsMessages=[{role:'system',content:fullSys}].concat(chatHistory.slice(-10));
+      return fetch(DS_URL,{
     method:'POST',
     headers:{
       'Content-Type':'application/json',
@@ -873,6 +1178,13 @@ function sendMessage(){
       lastCost=cost;sessionCostTotal+=cost;
       document.getElementById('costLast').textContent='$'+cost.toFixed(6);
       document.getElementById('costTotal').textContent='$'+sessionCostTotal.toFixed(6);
+    }
+    // Lightweight quality check — flag if response seems generic
+    var rl=reply.toLowerCase();
+    var hasContext=rl.includes('light assembly')||rl.includes('ikot ambon')||rl.includes('pastor')||rl.includes('akwa ibom');
+    var hasScripture=rl.includes('scripture')||rl.includes('bible')||rl.includes('chapter')||rl.includes('verse')||rl.includes(':');
+    if(!hasContext&&currentMode!=='chat'){
+      console.log('MINOS quality: response may lack church context');
     }
   })
   .catch(function(e){
@@ -1062,6 +1374,7 @@ function saveFile(text,title){
 document.getElementById('settingsBtn').addEventListener('click',function(){
   document.getElementById('settingsKey').value=getKey();
   document.getElementById('settingsGcp').value=getGcp();
+  document.getElementById('settingsSearchKey').value=getSearchKey();
   document.getElementById('settingsOv').classList.add('on');
 });
 document.getElementById('settingsClose').addEventListener('click',function(){
@@ -1073,8 +1386,10 @@ document.getElementById('settingsOv').addEventListener('click',function(e){
 document.getElementById('settingsSave').addEventListener('click',function(){
   var k=document.getElementById('settingsKey').value.trim();
   var gcp=document.getElementById('settingsGcp').value.trim();
+  var sk=document.getElementById('settingsSearchKey').value.trim();
   if(k)lss('minos_ds_ak',k);
   if(gcp)lss('minos_gcp',gcp);
+  if(sk)lss('minos_search_key',sk);
   document.getElementById('settingsOv').classList.remove('on');
   toast('Saved -- reloading...');
   setTimeout(function(){location.reload();},1200);
@@ -1404,7 +1719,14 @@ function showRecommendation(){
   };
   var rec=recs[day];
   if(!rec)return;
-  document.getElementById('recText').textContent=rec.text;
+  // Personalize if we have usage data
+  var personalMode=getPersonalizedRec();
+  var personalLabel={'study':'Deep Study','sunday':'Sunday Message','notes':'Sermon Notes','whatsapp':'WhatsApp Devotional','facebook':'Facebook Posts','partner':'Partner Devotional','prayer':'Prayer Guide','morning':'Morning Brief'};
+  if(personalMode&&personalLabel[personalMode]){
+    document.getElementById('recText').textContent='You often use '+personalLabel[personalMode]+' recently. '+rec.text;
+  }else{
+    document.getElementById('recText').textContent=rec.text;
+  }
   document.getElementById('recAction').textContent=rec.action+' →';
   document.getElementById('recCard').style.display='block';
   document.getElementById('recCard').onclick=function(e){
@@ -1435,11 +1757,10 @@ setTimeout(showRecommendation, 1500);
 var customPromptAddons=[];
 
 function loadCustomPrompt(){
-  if(!db)return;
-  db.ref('minos-custom-prompt').once('value',function(snap){
-    var data=snap.val();
-    if(data&&data.addons){
-      customPromptAddons=data.addons;
+  if(!supabase)return;
+  supabase.from('prompt_addons').select('*').then(function(res){
+    if(res.data&&res.data.length){
+      customPromptAddons=res.data[0].addons||[];
     }
   });
 }
@@ -1485,9 +1806,9 @@ document.getElementById('promptUpdateBtn').addEventListener('click',function(){
     if(data.content&&data.content[0]){
       var directive=data.content[0].text.trim();
       customPromptAddons.push(directive);
-      // Save to Firebase so both phones get it
-      if(db){
-        db.ref('minos-custom-prompt').set({addons:customPromptAddons,updated:Date.now()});
+      // Save to Supabase so both phones get it
+      if(supabase){
+        supabase.from('prompt_addons').update({addons:customPromptAddons}).eq('id',1);
       }
       status.textContent='Updated successfully. Both phones now use the new instruction.';
       document.getElementById('promptUpdateInp').value='';
@@ -1502,7 +1823,7 @@ document.getElementById('promptUpdateBtn').addEventListener('click',function(){
 });
 
 // Load custom prompt when Firebase connects
-setTimeout(function(){if(db)loadCustomPrompt();},2000);
+setTimeout(function(){if(supabase)loadCustomPrompt();},2000);
 
 </script>
 </body>
