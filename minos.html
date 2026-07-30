@@ -266,8 +266,8 @@ body{font-family:'Source Serif 4',serif;font-size:17px;line-height:1.6;backgroun
     <div class="su-tag">Ministry Intelligence &amp; Operational System</div>
     <div class="su-church">Light Assembly Bible Church<br>Rev. Emmanuel Udoh &middot; Ikot Ambon</div>
     <div class="su-card ok">
-      <div class="su-ctitle">Firebase <span class="su-badge">CONNECTED</span></div>
-      <div class="su-desc">Library pre-configured. Both phones sync automatically in real time.</div>
+      <div class="su-ctitle">Supabase <span class="su-badge">CONNECTED</span></div>
+      <div class="su-desc">Library pre-configured in PostgreSQL. Both phones sync automatically in real time.</div>
     </div>
     <div class="su-card">
       <div class="su-ctitle">DeepSeek API Key</div>
@@ -527,15 +527,6 @@ body{font-family:'Source Serif 4',serif;font-size:17px;line-height:1.6;backgroun
 var SUPABASE_URL='https://wsotdmzolzysxcjaehpw.supabase.co';
 var SUPABASE_KEY='***';
 var supabase=null;
-var FBC={
-  apiKey:'AIzaSyBahFRyVWBjc0yHIQlaKCFvYwcUZjIpuGA',
-  authDomain:'minos-dashboard.firebaseapp.com',
-  databaseURL:'https://minos-dashboard-default-rtdb.firebaseio.com',
-  projectId:'minos-dashboard',
-  storageBucket:'minos-dashboard.firebasestorage.app',
-  messagingSenderId:'847823517233',
-  appId:'1:847823517233:web:d9eb5237172856a4870710'
-};
 var DS_URL='https://api.deepseek.com/chat/completions';
 var DS_CHAT='deepseek-chat';var DS_REASON='deepseek-reasoner';
 var COST={chat:{in:0.14,out:0.28},reason:{in:0.55,out:2.19}};
@@ -679,7 +670,6 @@ function buildSYS(){
 var SYS="";
 
 // == STATE ==
-var db=null;
 var items={};
 var activeCat='all';
 var libQ='';
@@ -742,14 +732,16 @@ window.addEventListener('load',function(){
 // == FIREBASE ==
 function initSupabase(){
   try{
-    if(!firebase.apps.length)firebase.initializeApp(FBC);
-    db=firebase.database();
-    db.ref('deepseek-library').on('value',function(snap){
-      items=snap.val()||{};
-      updateBadges();
-      renderLib();
-    });
-    setSyncStatus('live');
+    supabase=supabase||createClient(SUPABASE_URL,SUPABASE_KEY);
+    supabase.from('library_items').select('*').then(function(res){
+      if(res.data&&res.data.length){
+        items={};
+        res.data.forEach(function(i){items[i.id]=i;});
+        updateBadges();
+        renderLib();
+      }
+      setSyncStatus('live');
+    }).catch(function(){setSyncStatus('off');toast('Supabase error -- check connection');});
   }catch(e){
     setSyncStatus('off');
     toast('Supabase error -- check connection');
@@ -808,8 +800,8 @@ function dbSave(item){
 }
 
 function dbDel(id){
-  if(!db)return;
-  db.ref('deepseek-library/'+id).remove();
+  if(!supabase)return;
+  supabase.from('library_items').delete().eq('id',id).then(function(){setSyncStatus('live');}).catch(function(){setSyncStatus('off');toast('Sync error');});
 }
 
 // == TABS ==
@@ -1474,11 +1466,10 @@ setTimeout(showRecommendation, 1500);
 var customPromptAddons=[];
 
 function loadCustomPrompt(){
-  if(!db)return;
-  db.ref('minos-custom-prompt').once('value',function(snap){
-    var data=snap.val();
-    if(data&&data.addons){
-      customPromptAddons=data.addons;
+  if(!supabase)return;
+  supabase.from('prompt_addons').select('*').then(function(res){
+    if(res.data&&res.data.length){
+      customPromptAddons=res.data[0].addons||[];
     }
   });
 }
@@ -1541,7 +1532,7 @@ document.getElementById('promptUpdateBtn').addEventListener('click',function(){
 });
 
 // Load custom prompt when Supabase connects
-setTimeout(function(){if(db)loadCustomPrompt();},2000);
+setTimeout(function(){if(supabase)loadCustomPrompt();},2000);
 
 </script>
 </body>
