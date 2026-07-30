@@ -732,7 +732,7 @@ window.addEventListener('load',function(){
 // == FIREBASE ==
 function initSupabase(){
   try{
-    supabase=supabase||createClient(SUPABASE_URL,SUPABASE_KEY);
+    supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
     supabase.from('library_items').select('*').then(function(res){
       if(res.data&&res.data.length){
         items={};
