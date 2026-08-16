@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MINOS v2 — minos-search Test Suite (Agent 2)</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 2rem; }
+  h1 { font-size: 1.4rem; }
+  .pass { color: #0a0; } .fail { color: #a00; font-weight: 700; }
+  #summary { font-weight: 700; margin-bottom: 1rem; }
+  #log { white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: .8rem; }
+</style>
+</head>
+<body>
+<h1>MINOS v2 — minos-search test suite</h1>
+<div id="summary">Running…</div>
+<div id="log"></div>
+
+<script type="module">
+import searchEngine from '../search-engine.js';
+import bible from '../bible-api.js';
+
+const $log = document.getElementById('log');
+const $summary = document.getElementById('summary');
+let pass = 0, fail = 0;
+
+function ok(cond, name) {
+  if (cond) { pass++; $log.textContent += 'PASS  ' + name + '\n'; }
+  else { fail++; $log.textContent += 'FAIL  ' + name + '\n'; }
+}
+function section(t) { $log.textContent += '\n--- ' + t + ' ---\n'; }
+
+/* ---- test 1: every mode returns safe shape, stub provider, non-empty context ---- */
+section('Stub search per mode (offline, no keys)');
+const MODES = ['deep-study','sunday-message','sermon-notes','whatsapp-devotional',
+               'facebook-posts','partner-devotional','prayer-guide','morning-brief'];
+for (const m of MODES) {
+  const r = await searchEngine.searchInternet('grace and peace', m, { forceStub: true });
+  ok(Array.isArray(r.results) && r.results.length > 0, `[${m}] returns results (got ${r.results.length})`);
+  ok(typeof r.contextString === 'string' && r.contextString, `[${m}] non-empty contextString`);
+  ok(r.contextString.startsWith('INTERNET RESOURCES FOUND:'), `[${m}] correct context header`);
+  ok(!r.contextString.includes('undefined'), `[${m}] no leaky 'undefined'`);
+}
+
+/* ---- test 2: context format exactly per contract ---- */
+section('Context format');
+{
+  const r = await searchEngine.searchInternet('faith', 'sunday-message', { forceStub: true });
+  const first = r.results[0];
+  const expectedLine = '[1] ' + first.title + ' — ' + first.url;
+  ok(r.contextString.includes(expectedLine), 'context uses "[n] Title — url" format');
+  ok(r.contextString.includes('\n---\n'), 'context has --- separators');
+  ok(r.contextString.trimEnd().endsWith('---'), 'context ends with ---');
+}
+
+/* ---- test 3: empty query still yields result (mode prefix drives it) ---- */
+section('Empty query');
+{
+  const r = await searchEngine.searchInternet('', 'prayer-guide', { forceStub: true });
+  ok(r.results.length > 0, 'empty query still returns mode-tuned results');
+  ok(!r.meta.error, 'no error on empty query');
+}
+
+/* ---- test 4: never throws on garbage input ---- */
+section('Never-throw / graceful degradation');
+{
+  try {
+    const r = await searchEngine.searchInternet(null, 'nonsense-mode');
+    ok(true, 'null query + unknown mode does not throw');
+    ok(Array.isArray(r.results), 'returns results array even for unknown mode');
+  } catch (e) { ok(false, 'threw on garbage input: ' + e.message); }
+
+  try {
+    const b = await bible.lookupPassage('not-a-real-book 1:1');
+    ok(b.ok === false || b.ok === true, 'bible lookup resolves (never throws)');
+  } catch (e) { ok(false, 'bible lookup threw: ' + e.message); }
+
+  try {
+    await searchEngine.searchInternet(undefined, undefined);
+    ok(true, 'undefined/missing args do not throw');
+  } catch (e) { ok(false, 'threw on missing args: ' + e.message); }
+}
+
+/* ---- test 5: bible-api standalone ---- */
+section('bible-api');
+{
+  const s = await bible.strongsLookup('agape');
+  ok(s.ok && s.strongs === 'G26', 'strongs agape -> G26 (got ' + s.strongs + ')');
+  ok(s.contextString.includes("Strong's"), 'strongs context mentions Strong');
+  const s2 = await bible.strongsLookup('hesed');
+  ok(s2.ok && s2.strongs === 'H2617', 'strongs hesed -> H2617');
+  const s3 = await bible.strongsLookup('madeupword');
+  ok(s3.ok && s3.found === false, 'unknown strongs word degrades gracefully (found=false)');
+  const refs = await bible.crossReferences('John 3:16', 'deep-study');
+  ok(Array.isArray(refs.references), 'crossReferences returns array');
+  const ctx = await bible.enrichBibleContext('John 3:16', 'deep-study', { strongs: true });
+  ok(typeof ctx.contextString === 'string', 'enrichBibleContext returns string');
+}
+
+/* ---- test 6: live passage lookup (network; skipped gracefully if offline) ---- */
+section('Live bible-api passage lookup (network)');
+{
+  const p = await bible.lookupPassage('John 3:16', 'deep-study');
+  if (p.ok) {
+    ok(p.ok, 'John 3:16 fetched OK');
+    ok(p.text.includes('God'), 'passage text contains content');
+    ok(p.contextString.startsWith('BIBLE PASSAGE:'), 'passage context header correct');
+  } else {
+    ok(true, 'John 3:16 network lookup degraded gracefully (offline) => ' + p.error);
+  }
+}
+
+/* ---- test 7: default export surface matches Router expectations ---- */
+section('Export surface');
+{
+  ok(typeof searchEngine.searchInternet === 'function', 'default.searchInternet is a function');
+  ok(typeof searchEngine.clearCache === 'function', 'default.clearCache is a function');
+  ok(typeof searchEngine._MODE_STRATEGY === 'object', 'strategy map exported');
+  ok(Object.keys(searchEngine._MODE_STRATEGY).length >= 9, 'strategy map covers 8 modes + default');
+}
+
+/* ---- test 8: all 8 mode strategies are distinct ---- */
+section('Mode strategy distinctness');
+{
+  const seen = new Set();
+  let distinct = 0;
+  for (const m of MODES) {
+    const s = searchEngine._MODE_STRATEGY[m];
+    const sig = JSON.stringify([s.topK, s.depth, s.prefix, s.strongs]);
+    if (!seen.has(sig)) { seen.add(sig); distinct++; }
+  }
+  ok(distinct >= 8, 'all 8 modes have distinct strategies (distinct=' + distinct + ')');
+}
+
+/* ---- topK clamp ---- */
+section('topK clamp');
+{
+  const r = await searchEngine.searchInternet('x', 'deep-study', { forceStub: true, topK: 999 });
+  ok(r.results.length <= 10, 'topK clamped to max 10 (got ' + r.results.length + ')');
+}
+
+$summary.textContent = `\n\nRESULT: ${pass} passed, ${fail} failed`;
+$summary.className = fail ? 'fail' : 'pass';
+$log.textContent += '\n=== DONE ===\n';
+</script>
+</body>
+</html>

@@ -1,0 +1,173 @@
+{
+  "version": 1,
+  "comment": "MINOS v2 Mode Router config. Consumed by mode-router.js (ESM). Each mode selects a distinct RAG + Internet search strategy and applies a tone/format modifier to the assembled context. Weights govern 1) how heavily library vs internet vs training inform the answer, 2) how many results of each source are injected. All token budgets are per-source CONTEXT budgets (targets), the router enforces a hard cap of LOWER THAN 8000 context tokens.",
+  "defaults": {
+    "contextTokenCap": 7900,
+    "estTokensPerChar": 0.25,
+    "libraryTopK": 5,
+    "internetTopK": 5,
+    "fallbackChain": ["library", "internet", "trainingOnly"]
+  },
+  "modes": {
+    "deep-study": {
+      "label": "Deep Study",
+      "id": "study",
+      "model": "deepseek-reasoner",
+      "weights": { "library": 0.35, "internet": 0.45, "training": 0.20 },
+      "search": {
+        "depth": "deep",
+        "internetTopK": 8,
+        "libraryTopK": 8,
+        "queryPrefix": "scholarly commentary Greek Hebrew lexicon theological paper seminary resources",
+        "bibleLookup": true,
+        "strongs": true,
+        "fetchFullPassages": true,
+        "minSourceCredibility": "seminary, lexicon, academic"
+      },
+      "tokenBudget": { "library": 3000, "internet": 3000, "base": 900 },
+      "tone": "scholarly, precise, academic but anointed",
+      "format": "8-layer Deep Study structure (anchor texts, word studies, historical, scholarly voices, theology, biblical thread, local illustrations, pastoral application)",
+      "outputFormatHint": "NEVER cut short. Full detail on all 8 layers. Original-language words with transliteration."
+    },
+    "sunday-message": {
+      "label": "Sunday Message",
+      "id": "sunday",
+      "model": "deepseek-reasoner",
+      "weights": { "library": 0.30, "internet": 0.35, "training": 0.35 },
+      "search": {
+        "depth": "medium",
+        "internetTopK": 6,
+        "libraryTopK": 6,
+        "queryPrefix": "sermon outline historical cultural context illustrations related scriptures preaching",
+        "bibleLookup": true,
+        "strongs": false,
+        "fetchFullPassages": true,
+        "minSourceCredibility": "sermon outline, commentary, teaching ministry"
+      },
+      "tokenBudget": { "library": 2500, "internet": 2500, "base": 900 },
+      "tone": "weighty, anointed, preaching rhythm, directly to the congregation",
+      "format": "Sunday Message structure: Title, Texts, One Truth, hook, 3-5 body sections (KEY POINT / BACKUP SCRIPTURE / EXPLANATION / WORD STUDY / ILLUSTRATION / DEMONSTRATION / IBIBIO MOMENT), 5-day table, altar call, closing prayer, POWER POINTS",
+      "outputFormatHint": "FULL step-by-step preaching guide. Quote backup scriptures in full. Name two altar-call groups."
+    },
+    "sermon-notes": {
+      "label": "Sermon Notes",
+      "id": "notes",
+      "model": "deepseek-chat",
+      "weights": { "library": 0.40, "internet": 0.30, "training": 0.30 },
+      "search": {
+        "depth": "medium",
+        "internetTopK": 5,
+        "libraryTopK": 5,
+        "queryPrefix": "commentary highlights key themes preaching resources sermon notes",
+        "bibleLookup": true,
+        "strongs": false,
+        "fetchFullPassages": false,
+        "minSourceCredibility": "commentary, teaching ministry"
+      },
+      "tokenBudget": { "library": 2000, "internet": 2000, "base": 800 },
+      "tone": "compressed, punchy, faithful mirror of the Sunday message",
+      "format": "Sermon Notes structure: every section heading, KEY POINT one bold sentence, Backup Scripture, explanation 2-3 punchy lines, 5-day table, altar call, closing prayer, POWER POINTS",
+      "outputFormatHint": "Compressed faithful mirror. Markers kept. Under the preached length."
+    },
+    "whatsapp-devotional": {
+      "label": "WhatsApp Devotional",
+      "id": "whatsapp",
+      "model": "deepseek-chat",
+      "weights": { "library": 0.35, "internet": 0.25, "training": 0.40 },
+      "search": {
+        "depth": "shallow",
+        "internetTopK": 4,
+        "libraryTopK": 4,
+        "queryPrefix": "daily devotional relatable story illustration short-form theological insight",
+        "bibleLookup": true,
+        "strongs": false,
+        "fetchFullPassages": true,
+        "minSourceCredibility": "devotional, story, illustration"
+      },
+      "tokenBudget": { "library": 1500, "internet": 1200, "base": 800 },
+      "tone": "captivating, warm, intimate, impossible to ignore, edifying",
+      "format": "7-day WhatsApp Devotional series. Each day: DAY NUMBER + TITLE, OPENING HOOK, ANCHOR SCRIPTURE in full, REVELATION 2-3 paragraphs, REAL STORY/ILLUSTRATION, ACTION POINT, DECLARATION. Under 200 words/day.",
+      "outputFormatHint": "Series of 7 days. Title must create curiosity. Daily under 200 words, every word earns its place."
+    },
+    "facebook-posts": {
+      "label": "Facebook Posts",
+      "id": "facebook",
+      "model": "deepseek-chat",
+      "weights": { "library": 0.20, "internet": 0.35, "training": 0.45 },
+      "search": {
+        "depth": "shallow",
+        "internetTopK": 5,
+        "libraryTopK": 3,
+        "queryPrefix": "viral Christian content patterns topical Bible teaching engagement hooks",
+        "bibleLookup": true,
+        "strongs": false,
+        "fetchFullPassages": false,
+        "minSourceCredibility": "Christian content, engagement pattern"
+      },
+      "tokenBudget": { "library": 800, "internet": 1800, "base": 800 },
+      "tone": "bold, hook-driven, stop-the-scroll, spiritually rich, viral-but-holy",
+      "format": "Each post 9-line structure: HOOK, TENSION, REVELATION, APPLICATION, CLOSE, FOOTER (Light Assembly Bible Church | Ikot Ambon, Akwa Ibom). Max 150 words, no hashtags unless asked.",
+      "outputFormatHint": "ASKS numbered questions with lettered options BEFORE generating (1A 2B). Then produces posts."
+    },
+    "partner-devotional": {
+      "label": "Partner Devotional",
+      "id": "partner",
+      "model": "deepseek-reasoner",
+      "weights": { "library": 0.35, "internet": 0.35, "training": 0.30 },
+      "search": {
+        "depth": "deep",
+        "internetTopK": 5,
+        "libraryTopK": 5,
+        "queryPrefix": "covenant partnership stewardship scriptures prophetic devotional partner teaching",
+        "bibleLookup": true,
+        "strongs": false,
+        "fetchFullPassages": true,
+        "minSourceCredibility": "stewardship, covenant, prophetic teaching"
+      },
+      "tokenBudget": { "library": 2200, "internet": 2000, "base": 900 },
+      "tone": "weighty, prophetic, honoring, personal-letter-from-God, never generic",
+      "format": "Personal letter to a covenant partner: OPENING HOOK, ANCHOR SCRIPTURE, REVELATION 2-3 paragraphs (scholarly depth + prophetic fire), A WORD FOR THE COVENANT PARTNER, DECLARATION 4-5 lines, ACTIVATION.",
+      "outputFormatHint": "Covenant partner, not donor. Never begging. Weighty, rich, professional, honoring."
+    },
+    "prayer-guide": {
+      "label": "Prayer Guide",
+      "id": "prayer",
+      "model": "deepseek-chat",
+      "weights": { "library": 0.30, "internet": 0.35, "training": 0.35 },
+      "search": {
+        "depth": "medium",
+        "internetTopK": 5,
+        "libraryTopK": 5,
+        "queryPrefix": "prayer movements scripture-based prayer patterns revival resources prayer agenda",
+        "bibleLookup": true,
+        "strongs": false,
+        "fetchFullPassages": true,
+        "minSourceCredibility": "prayer ministry, revival teaching"
+      },
+      "tokenBudget": { "library": 1800, "internet": 2200, "base": 800 },
+      "tone": "structured, Spirit-led, declarative, worship-first",
+      "format": "Structured agenda: Opening worship direction, themed prayer sections with supporting scriptures, declaration points, closing prayer in full.",
+      "outputFormatHint": "PRAY FIRST. Opening worship direction then themed prayer sections each with supporting scripture."
+    },
+    "morning-brief": {
+      "label": "Morning Brief",
+      "id": "morning",
+      "model": "deepseek-chat",
+      "weights": { "library": 0.25, "internet": 0.30, "training": 0.45 },
+      "search": {
+        "depth": "daily",
+        "internetTopK": 5,
+        "libraryTopK": 4,
+        "queryPrefix": "today church calendar Christian observances shepherd devotional morning",
+        "bibleLookup": true,
+        "strongs": false,
+        "fetchFullPassages": false,
+        "minSourceCredibility": "church calendar, devotional, current date"
+      },
+      "tokenBudget": { "library": 1200, "internet": 1800, "base": 800 },
+      "tone": "concise, shepherd-focused, warm, practical for the day",
+      "format": "Morning Brief: Scripture for today, Word for the Shepherd (personal feeding), Church status + TODAY from schedule note, Preaching growth challenge, Cultural awareness for Akwa Ibom, Declaration for the day.",
+      "outputFormatHint": "Short, scannable, feeds the shepherd first. Uses today's date + schedule note."
+    }
+  }
+}
