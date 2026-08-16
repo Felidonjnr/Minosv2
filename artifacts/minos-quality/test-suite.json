@@ -1,0 +1,538 @@
+{
+  "version": 1,
+  "comment": "MINOS v2 Quality Engine test suite. Each case: { query, mode, context, expectedPatterns, shouldPass }. consumed by minos-orchestrator during CP2. 50+ cases covering QG1–QG6 across all 8 modes.",
+  "engine": "validateOutput(output, mode, context) -> { pass, issues, score }",
+  "threshold": 80,
+  "cases": [
+    {
+      "id": "t001",
+      "query": "Study the kenosis passage",
+      "mode": "deep-study",
+      "context": { "library": { "items": [ { "title": "Philippians Commentary", "cat": "study" } ], "contextString": "" }, "internet": { "results": [ { "title": "Kenosis Research", "url": "http://x" } ], "contextString": "" } },
+      "output": "Anchor Text: Philippians 2:5-11. WORD STUDY: kenoō. HISTORICAL: classical background. SCHOLARLY: Fee argues. THEOLOGY: descent. BIBLICAL THREAD: cross. ILLUSTRATION: local. APPLICATION: pastoral.",
+      "expectedPatterns": ["Anchor", "WORD STUDY", "HISTORICAL", "SCHOLARLY", "THEOLOGY"],
+      "shouldPass": true
+    },
+    {
+      "id": "t002",
+      "query": "Deep study with a false lexicon token without translation",
+      "mode": "deep-study",
+      "context": { "library": { "items": [ { "title": "Philippians Commentary", "cat": "study" } ], "contextString": "" }, "internet": { "results": [], "contextString": "" } },
+      "output": "WORD STUDY: <thinking>Let me reason.</thinking> agapē appears. Anchor Text: John 3:16. HISTORICAL context. SCHOLARLY voices. THEOLOGY. BIBLICAL THREAD. ILLUSTRATION. APPLICATION.",
+      "expectedPatterns": ["agapē"],
+      "shouldPass": true,
+      "note": "lexicon-without-inline-translation is advisory soft (QG1.2); short thinking in reasoner ok -> passes"
+    },
+    {
+      "id": "t003",
+      "query": "Full Sunday message",
+      "mode": "sunday-message",
+      "context": { "library": { "items": [ { "title": "Luke Outline", "cat": "sermon" } ], "contextString": "" }, "internet": { "results": [], "contextString": "" } },
+      "output": "Title: The Lost Son. One Truth: Grace. KEY POINT: God welcomes. BACKUP SCRIPTURE: Luke 15:20. ILLUSTRATION: story. IBIBIO MOMENT: our culture. 5-Day table. Altar Call: two groups. Closing prayer. POWER POINTS.",
+      "expectedPatterns": ["Title", "One Truth", "KEY POINT", "POWER POINTS"],
+      "shouldPass": true
+    },
+    {
+      "id": "t004",
+      "query": "Sunday message missing most markers",
+      "mode": "sunday-message",
+      "context": {},
+      "output": "Here is your sermon about grace. Jesus loves you.",
+      "expectedPatterns": ["One Truth"],
+      "shouldPass": false,
+      "note": "fails on missing structure markers"
+    },
+    {
+      "id": "t005",
+      "query": "Sermon notes",
+      "mode": "sermon-notes",
+      "context": { "library": { "items": [ { "title": "Matthew Study", "cat": "notes" } ], "contextString": "" }, "internet": { "results": [], "contextString": "" } },
+      "output": "KEY POINT: Blessed are the poor in spirit. Backup Scripture: Matthew 5:3. 5-Day table. Altar call. POWER POINTS.",
+      "expectedPatterns": ["KEY POINT", "Backup Scripture", "POWER POINTS"],
+      "shouldPass": true
+    },
+    {
+      "id": "t006",
+      "query": "Sermon notes with a thinking block (chat mode)",
+      "mode": "sermon-notes",
+      "context": {},
+      "output": "<thinking>I should compress this.</thinking> KEY POINT: Grace. Backup Scripture: Ephesians 2:8. Altar call. POWER POINTS.",
+      "expectedPatterns": ["KEY POINT"],
+      "shouldPass": false,
+      "note": "chat mode with <thinking> -> blocking fail (QG5)"
+    },
+    {
+      "id": "t007",
+      "query": "WhatsApp devotional 7 days",
+      "mode": "whatsapp-devotional",
+      "context": { "library": { "items": [ { "title": "Devotional Seed", "cat": "whatsapp" } ], "contextString": "" }, "internet": { "results": [], "contextString": "" } },
+      "output": "DAY 1: Hope. ANCHOR SCRIPTURE: Romans 15:13. REVELATION: God fills. ACTION POINT: trust. DECLARATION: I am hopeful. DAY 2: Peace. ANCHOR SCRIPTURE: John 14:27. REVELATION. ACTION POINT. DECLARATION. DAY 3: Joy. ANCHOR SCRIPTURE: Nehemiah 8:10. REVELATION. ACTION POINT. DECLARATION. DAY 4: Faith. ANCHOR SCRIPTURE: Hebrews 11:1. REVELATION. ACTION POINT. DECLARATION.",
+      "expectedPatterns": ["DAY 1", "DAY 2", "ANCHOR SCRIPTURE", "DECLARATION"],
+      "shouldPass": true
+    },
+    {
+      "id": "t008",
+      "query": "WhatsApp devotional contaminated with sermon markers (bleed)",
+      "mode": "whatsapp-devotional",
+      "context": {},
+      "output": "DAY 1: Hope. ANCHOR SCRIPTURE: John 14:27. REVELATION. ACTION POINT. DECLARATION. POWER POINTS. 5-Day table.",
+      "expectedPatterns": ["DAY 1", "POWER POINTS"],
+      "shouldPass": false,
+      "note": "cross-mode bleed (POWER POINTS, 5-Day) -> format fail"
+    },
+    {
+      "id": "t009",
+      "query": "Facebook posts",
+      "mode": "facebook-posts",
+      "context": { "internet": { "results": [ { "title": "Engagement Patterns", "url": "http://y" } ], "contextString": "" }, "library": { "items": [], "contextString": "" } },
+      "output": "HOOK: Are you tired? TENSION: we all struggle. REVELATION: God gives rest. APPLICATION: rest in Him. CLOSE: share this. FOOTER: Light Assembly Bible Church | Ikot Ambon, Akwa Ibom.",
+      "expectedPatterns": ["HOOK", "TENSION", "REVELATION", "CLOSE", "Light Assembly Bible Church"],
+      "shouldPass": true
+    },
+    {
+      "id": "t010",
+      "query": "Facebook post with a fabricated external citation",
+      "mode": "facebook-posts",
+      "context": { "internet": { "results": [ { "title": "Engagement Patterns", "url": "http://y" } ], "contextString": "" }, "library": { "items": [], "contextString": "" } },
+      "output": "HOOK: Real truth. TENSION: real. REVELATION: real. APPLICATION: real. CLOSE: real. FOOTER: Light Assembly Bible Church. (per: Never-Published Report on Viral Theology)",
+      "expectedPatterns": ["FOOTER"],
+      "shouldPass": false,
+      "note": "fabricated citation not in context -> blocking (QG2)"
+    },
+    {
+      "id": "t011",
+      "query": "Partner devotional",
+      "mode": "partner-devotional",
+      "context": { "library": { "items": [ { "title": "Covenant Stewardship", "cat": "partner" } ], "contextString": "" }, "internet": { "results": [], "contextString": "" } },
+      "output": "<thinking>Draft a weighty letter.</thinking> ANCHOR SCRIPTURE: 2 Corinthians 9:7. REVELATION: a cheerful giver. A WORD FOR THE COVENANT PARTNER: you are a partner, not a donor. DECLARATION: I walk in covenant. ACTIVATION: meditate on this.",
+      "expectedPatterns": ["ANCHOR SCRIPTURE", "COVENANT PARTNER", "DECLARATION", "ACTIVATION"],
+      "shouldPass": true
+    },
+    {
+      "id": "t012",
+      "query": "Partner devotional with multiple long thinking blocks",
+      "mode": "partner-devotional",
+      "context": { "library": { "items": [ { "title": "Covenant Manual", "cat": "partner" } ], "contextString": "" }, "internet": { "results": [], "contextString": "" } },
+      "output": "<thinking>A very long chain of internal reasoning that re-dumps the entire theological argument in prose with many additional clauses and sub clauses that go on and on and on and on and on and on and on and on trying to fill tokens and look impressive and knowing and scholarly while at the same time never actually getting to the point and just adding more and more words and more and more sentences and more and more parenthetical asides to make the block far exceed any reasonable length.</thinking><thinking>Second block.</thinking> ANCHOR SCRIPTURE: Malachi 3:10. REVELATION. COVENANT PARTNER. DECLARATION. ACTIVATION.",
+      "expectedPatterns": ["ANCHOR SCRIPTURE"],
+      "shouldPass": false,
+      "note": "two <thinking> blocks + a very long block -> QG5 soft deductions push score below 80 -> fail"
+    },
+    {
+      "id": "t013",
+      "query": "Prayer guide",
+      "mode": "prayer-guide",
+      "context": { "library": { "items": [ { "title": "Prayer Movements", "cat": "prayer" } ], "contextString": "" }, "internet": { "results": [], "contextString": "" } },
+      "output": "Opening Worship Direction: enter with praise. Prayer Section 1: intercession. Declaration: we declare. Closing Prayer: Amen.",
+      "expectedPatterns": ["Worship", "prayer", "Declaration", "Closing Prayer"],
+      "shouldPass": true
+    },
+    {
+      "id": "t014",
+      "query": "Morning brief",
+      "mode": "morning-brief",
+      "context": { "library": { "items": [ { "title": "Schedule Note", "cat": "other" } ], "contextString": "" }, "internet": { "results": [], "contextString": "" } },
+      "output": "Scripture for today: Psalm 118:24. Word for the Shepherd: be refreshed. Church status + TODAY: service at 10am. Growth challenge: preach the Word. Cultural awareness: Akwa Ibom harvest season. Declaration: today is good.",
+      "expectedPatterns": ["Scripture", "Shepherd", "TODAY", "growth", "Declaration"],
+      "shouldPass": true
+    },
+    {
+      "id": "t015",
+      "query": "Impossible verse: Genesis 99:1 (chapter out of range)",
+      "mode": "deep-study",
+      "context": {},
+      "output": "Anchor Text: Genesis 99:1. WORD STUDY. HISTORICAL. SCHOLARLY. THEOLOGY. BIBLICAL THREAD. ILLUSTRATION. APPLICATION.",
+      "expectedPatterns": ["Genesis 99:1"],
+      "shouldPass": false,
+      "note": "impossible chapter -> blocking fail (QG4)"
+    },
+    {
+      "id": "t016",
+      "query": "Fake verse: Psalm 150:999 (verse out of range)",
+      "mode": "sunday-message",
+      "context": {},
+      "output": "Title: A. One Truth: B. KEY POINT: C. Psalm 150:999. Altar call. POWER POINTS.",
+      "expectedPatterns": ["Psalm 150:999"],
+      "shouldPass": false,
+      "note": "impossible verse -> blocking fail (QG4)"
+    },
+    {
+      "id": "t017",
+      "query": "Fake book name",
+      "mode": "deep-study",
+      "context": {},
+      "output": "Anchor: 5:1. WORD STUDY. HISTORICAL. SCHOLARLY. THEOLOGY. BIBLICAL THREAD. ILLUSTRATION. APPLICATION.",
+      "expectedPatterns": ["Anchor"],
+      "shouldPass": false,
+      "note": "unknown book in ref -> blocking (QG4)"
+    },
+    {
+      "id": "t018",
+      "query": "Missing training-only label when sources empty",
+      "mode": "morning-brief",
+      "context": {},
+      "output": "Scripture: Psalm 1:1. Shepherd: be fed. TODAY: meeting. Growth: read. Cultural: harvest. Declaration: blessed.",
+      "expectedPatterns": ["Scripture"],
+      "shouldPass": false,
+      "note": "no sources + no training-only label -> blocking (QG1/QG5)"
+    },
+    {
+      "id": "t019",
+      "query": "Proper training-only label with empty sources",
+      "mode": "morning-brief",
+      "context": {},
+      "output": "training-only. Scripture: Psalm 1:1. Shepherd: be fed. TODAY: meeting. Growth: read. Cultural: harvest. Declaration: blessed.",
+      "expectedPatterns": ["training-only"],
+      "shouldPass": true
+    },
+    {
+      "id": "t020",
+      "query": "Citation to a library item present in context",
+      "mode": "deep-study",
+      "context": { "library": { "items": [ { "title": "Philippians Commentary", "cat": "study" } ], "contextString": "" }, "internet": { "results": [], "contextString": "" } },
+      "output": "Anchor: 2:5. (from library: \"Philippians Commentary\") WORD STUDY. HISTORICAL. SCHOLARLY. THEOLOGY. BIBLICAL THREAD. ILLUSTRATION. APPLICATION.",
+      "expectedPatterns": ["Philippians Commentary"],
+      "shouldPass": true
+    },
+    {
+      "id": "t021",
+      "query": "Citation to absent library item",
+      "mode": "deep-study",
+      "context": { "library": { "items": [ { "title": "Philippians Commentary", "cat": "study" } ], "contextString": "" }, "internet": { "results": [], "contextString": "" } },
+      "output": "Anchor: 2:5. (from library: \"Nonexistent Exegesis\") WORD STUDY. HISTORICAL. SCHOLARLY. THEOLOGY. BIBLICAL THREAD. ILLUSTRATION. APPLICATION.",
+      "expectedPatterns": ["Nonexistent Exegesis"],
+      "shouldPass": false,
+      "note": "citation to absent title -> blocking (QG2)"
+    },
+    {
+      "id": "t022",
+      "query": "Empty string output",
+      "mode": "deep-study",
+      "context": {},
+      "output": "",
+      "expectedPatterns": [],
+      "shouldPass": true,
+      "note": "empty output: no blocking issues; score 100 -> passes by threshold (degenerate case documented)"
+    },
+    {
+      "id": "t023",
+      "query": "Chat mode devotional with a long thinking block",
+      "mode": "whatsapp-devotional",
+      "context": {},
+      "output": "<thinking>Let me think deeply about the theology of this and craft a long internal reasoning here to check. line two. line three. line four. line five.</thinking> DAY 1: Hope. ANCHOR SCRIPTURE: Romans 15:13. REVELATION. ACTION POINT. DECLARATION.",
+      "expectedPatterns": ["DAY 1"],
+      "shouldPass": false,
+      "note": "chat mode <thinking> -> blocking (QG5)"
+    },
+    {
+      "id": "t024",
+      "query": "Valid range reference",
+      "mode": "deep-study",
+      "context": {},
+      "output": "training-only. Anchor: John 1:1-18. WORD STUDY. HISTORICAL. SCHOLARLY. THEOLOGY. BIBLICAL THREAD. ILLUSTRATION. APPLICATION.",
+      "expectedPatterns": ["John 1:1-18"],
+      "shouldPass": true
+    },
+    {
+      "id": "t025",
+      "query": "Inverted verse range (verseEnd < verse)",
+      "mode": "deep-study",
+      "context": {},
+      "output": "Anchor: John 1:18-1. WORD STUDY. HISTORICAL. SCHOLARLY. THEOLOGY. BIBLICAL THREAD. ILLUSTRATION. APPLICATION.",
+      "expectedPatterns": ["John 1:18-1"],
+      "shouldPass": false,
+      "note": "malformed range -> blocking (QG4)"
+    },
+    {
+      "id": "t026",
+      "query": "Local fact fabrication",
+      "mode": "morning-brief",
+      "context": {},
+      "output": "Scripture: Psalm 1:1. Shepherd: fed. TODAY: meeting. Growth: read. Cultural: Uyo church of 5000 attended. Declaration: blessed. training-only",
+      "expectedPatterns": ["Uyo church of 5000"],
+      "shouldPass": true,
+      "note": "QG6 local stat is advisory only (soft) -> still passes if score holds; also training-only present"
+    },
+    {
+      "id": "t027",
+      "query": "Real average content passes for partner devotional",
+      "mode": "partner-devotional",
+      "context": { "library": { "items": [ { "title": "Covenant Manual", "cat": "partner" } ], "contextString": "" }, "internet": { "results": [], "contextString": "" } },
+      "output": "ANCHOR SCRIPTURE: Proverbs 3:9. REVELATION: honor the Lord with wealth. A WORD FOR THE COVENANT PARTNER: generous and faithful. DECLARATION: I am a steward. ACTIVATION: give cheerfully.",
+      "expectedPatterns": ["ANCHOR SCRIPTURE", "REVELATION", "DECLARATION", "ACTIVATION"],
+      "shouldPass": true
+    },
+    {
+      "id": "t028",
+      "query": "Facebook post over 150 words",
+      "mode": "facebook-posts",
+      "context": { "internet": { "results": [ { "title": "Engagement", "url": "http://z" } ], "contextString": "" }, "library": { "items": [], "contextString": "" } },
+      "output": "HOOK: A very long hook that keeps going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going and going. TENSION: real tension here that also goes on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on. REVELATION: lots and lots of words here too many words that just keep piling up and up and up and up and up and up and up and up and up and up and up and up. APPLICATION: more words and then even more words and still more words piled on top and then some more for good measure. CLOSE: words closing it all out with yet more words and phrases to push the total count well over the line.. FOOTER: Light Assembly Bible Church.",
+      "expectedPatterns": ["FOOTER"],
+      "shouldPass": false,
+      "note": "far over 150 words (>10% overage) -> length format fail"
+    },
+    {
+      "id": "t029",
+      "query": "Sunday message with <thinking> (reasoner allowed, short)",
+      "mode": "sunday-message",
+      "context": {},
+      "output": "training-only. <thinking>Outline the flow.</thinking> Title: A. One Truth: B. KEY POINT: C. BACKUP SCRIPTURE: Mark 1:15. ILLUSTRATION: D. 5-Day table. Altar Call. Closing prayer. POWER POINTS.",
+      "expectedPatterns": ["Title", "One Truth", "KEY POINT"],
+      "shouldPass": true
+    },
+    {
+      "id": "t030",
+      "query": "Citation present but sources empty -> training-only violated",
+      "mode": "deep-study",
+      "context": {},
+      "output": "Anchor: Philippians 2:6. (from library: \"Philippians Commentary\") WORD STUDY. HISTORICAL. SCHOLARLY. THEOLOGY. BIBLICAL THREAD. ILLUSTRATION. APPLICATION.",
+      "expectedPatterns": ["from library"],
+      "shouldPass": false,
+      "note": "citation with empty sources -> blocking (QG2/QG1)"
+    },
+    {
+      "id": "t031",
+      "query": "Sunday message with fake unverified attendance number",
+      "mode": "sunday-message",
+      "context": {},
+      "output": "Title: A. One Truth: B. KEY POINT: C. attendance of 1200 last week. BACKUP SCRIPTURE: John 3:16. ILLUSTRATION: E. 5-Day table. Altar Call. Closing prayer. POWER POINTS.",
+      "expectedPatterns": ["attendance of 1200"],
+      "shouldPass": false,
+      "note": "unverified statistic with no [unverified] flag -> soft heavy deduction; plus missing markers -> fails"
+    },
+    {
+      "id": "t032",
+      "query": "All markers but long thinking in reasoner",
+      "mode": "deep-study",
+      "context": {},
+      "output": "<thinking>This is a very long chain of reasoning that re-dumps the entire scholarly argument in prose at great length with many additional clauses and sub clauses that go on and on trying to fill tokens and look impressive.</thinking> Anchor: 1:1. WORD STUDY. HISTORICAL. SCHOLARLY. THEOLOGY. BIBLICAL THREAD. ILLUSTRATION. APPLICATION.",
+      "expectedPatterns": ["Anchor", "WORD STUDY"],
+      "shouldPass": false,
+      "note": "long <thinking> in reasoner -> QG5 soft fail (weighted) pushing below 80"
+    },
+    {
+      "id": "t033",
+      "query": "Deep study with all 8 layers (strong pass)",
+      "mode": "deep-study",
+      "context": { "library": { "items": [ { "title": "Romans Study", "cat": "study" } ], "contextString": "" }, "internet": { "results": [ { "title": "Pauline Research", "url": "http://p" } ], "contextString": "" } },
+      "output": "Anchor Text: Romans 8:1. Word Study: katakrima. Historical: Rome context. Scholarly: Dunn. Theology: no condemnation. Biblical Thread: law. Local Illustrations: our village. Pastoral Application: peace. (from library: \"Romans Study\")",
+      "expectedPatterns": ["Anchor Text", "Word Study", "Historical", "Scholarly", "Theology", "Biblical Thread", "Local Illustrations", "Pastoral Application"],
+      "shouldPass": true
+    },
+    {
+      "id": "t034",
+      "query": "Sermon notes missing POWER POINTS but has thinking (fail)",
+      "mode": "sermon-notes",
+      "context": {},
+      "output": "<thinking>Short.</thinking> KEY POINT: Grace. Backup Scripture: Ephesians 2:8.",
+      "expectedPatterns": ["KEY POINT"],
+      "shouldPass": false,
+      "note": "chat mode thinking -> blocking, plus missing markers"
+    },
+    {
+      "id": "t035",
+      "query": "Prayer guide with fabricated scripture chapter",
+      "mode": "prayer-guide",
+      "context": {},
+      "output": "Worship: praise. Prayer: intercede using Revelation 22:999. Declaration: we stand. Closing Prayer: Amen.",
+      "expectedPatterns": ["Revelation 22:999"],
+      "shouldPass": false,
+      "note": "impossible verse -> blocking (QG4)"
+    },
+    {
+      "id": "t036",
+      "query": "Morning brief over cap but otherwise fine",
+      "mode": "morning-brief",
+      "context": {},
+      "output": "training-only. Scripture: Psalm 23:1. Shepherd: feed. TODAY: meeting. Growth: read good books and practice preaching every single day this week with real diligence and daily discipline and faithful study and careful preparation and diligent practice and devoted prayer and consistent follow-through and thoughtful review and humble correction and patient repetition and faithful perseverance and steady improvement and purposeful intentionality and heartfelt devotion and serious commitment and ongoing growth. Cultural: festival. Declaration: blessed. Additional words and phrases and clauses and sentences are now being added to this morning brief to intentionally and deliberately push the total word count well above the accepted threshold so that the scanner will detect that it is far too long and verbose for a quick shepherd-facing morning note. And still more words keep getting added, sentence after sentence after sentence, clause after clause after clause, paragraph after paragraph after paragraph, until the brief has grown completely out of proportion and far exceeds the reasonable length for a concise shepherd-facing morning note, making it impossible to scan quickly before the day begins and defeating the entire purpose of the format which demands brevity and clarity and immediate usefulness first thing each morning without any unnecessary padding or filler or verbose elaboration whatsoever.",
+      "expectedPatterns": ["training-only"],
+      "shouldPass": false,
+      "note": "decisively over morning-brief cap (>10% overage) -> length format fail"
+    },
+    {
+      "id": "t037",
+      "query": "Facebook post with Hebrew term without translation",
+      "mode": "facebook-posts",
+      "context": { "internet": { "results": [ { "title": "Engagement", "url": "http://e" } ], "contextString": "" }, "library": { "items": [], "contextString": "" } },
+      "output": "HOOK: shalom. TENSION: real. REVELATION: Genesis 1:1. APPLICATION: real. CLOSE: real. FOOTER: Light Assembly Bible Church.",
+      "expectedPatterns": ["shalom", "FOOTER"],
+      "shouldPass": true,
+      "note": "shalom-without-inline-translation is advisory soft (QG1.2); all FB markers present -> passes"
+    },
+    {
+      "id": "t038",
+      "query": "Sunday message using a valid single-book reference",
+      "mode": "sunday-message",
+      "context": {},
+      "output": "training-only. Title: A. One Truth: B. KEY POINT: C. BACKUP SCRIPTURE: Matthew 6:33. ILLUSTRATION. 5-Day table. Altar Call. Closing prayer. POWER POINTS.",
+      "expectedPatterns": ["Matthew 6:33", "POWER POINTS"],
+      "shouldPass": true
+    },
+    {
+      "id": "t039",
+      "query": "Deep study citing an internet result that IS present",
+      "mode": "deep-study",
+      "context": { "internet": { "results": [ { "title": "Pauline Research", "url": "http://p" } ], "contextString": "" }, "library": { "items": [], "contextString": "" } },
+      "output": "Anchor: Romans 8:1. (per: Pauline Research) WORD STUDY. HISTORICAL. SCHOLARLY. THEOLOGY. BIBLICAL THREAD. ILLUSTRATION. APPLICATION.",
+      "expectedPatterns": ["Pauline Research"],
+      "shouldPass": true
+    },
+    {
+      "id": "t040",
+      "query": "Chat-mode devotional with an impossible verse",
+      "mode": "whatsapp-devotional",
+      "context": {},
+      "output": "DAY 1: Hope. ANCHOR SCRIPTURE: Genesis 99:1. REVELATION. ACTION POINT. DECLARATION.",
+      "expectedPatterns": ["Genesis 99:1"],
+      "shouldPass": false,
+      "note": "genesis 99:1 impossible -> blocking"
+    },
+    {
+      "id": "t041",
+      "query": "Prayer guide missing most markers",
+      "mode": "prayer-guide",
+      "context": {},
+      "output": "Just pray about everything today.",
+      "expectedPatterns": [],
+      "shouldPass": false,
+      "note": "no structure markers -> format fail"
+    },
+    {
+      "id": "t042",
+      "query": "Sermon notes with clean structure and one valid citation",
+      "mode": "sermon-notes",
+      "context": { "library": { "items": [ { "title": "Mark Study", "cat": "notes" } ], "contextString": "" }, "internet": { "results": [], "contextString": "" } },
+      "output": "KEY POINT: Repent. Backup Scripture: Mark 1:15. (from library: \"Mark Study\") 5-Day table. Altar call. POWER POINTS.",
+      "expectedPatterns": ["KEY POINT", "Backup Scripture", "Mark Study"],
+      "shouldPass": true
+    },
+    {
+      "id": "t043",
+      "query": "Partner devotional with begging tone",
+      "mode": "partner-devotional",
+      "context": {},
+      "output": "ANCHOR SCRIPTURE: 2 Corinthians 9:7. REVELATION. COVENANT PARTNER: please send your offering now urgently. DECLARATION. ACTIVATION. training-only",
+      "expectedPatterns": ["COVENANT PARTNER"],
+      "shouldPass": false,
+      "note": "begging/tone manipulation -> QG6 soft; plus missing markers pushes below pass"
+    },
+    {
+      "id": "t044",
+      "query": "Deep study with unverified numeric claim AND sources empty",
+      "mode": "deep-study",
+      "context": {},
+      "output": "Anchor: Philippians 2:6. WORD STUDY. HISTORICAL. SCHOLARLY. THEOLOGY. BIBLICAL THREAD. ILLUSTRATION. APPLICATION. 85% of scholars agree.",
+      "expectedPatterns": ["85% of scholars"],
+      "shouldPass": false,
+      "note": "missing training-only label (sources empty) + unverified stat -> blocking"
+    },
+    {
+      "id": "t045",
+      "query": "Morning brief clean short pass",
+      "mode": "morning-brief",
+      "context": {},
+      "output": "Scripture: Psalm 118:24. Word for the Shepherd: rest. Church TODAY: service. Growth: preach. Cultural: season. Declaration: grace. training-only",
+      "expectedPatterns": ["Scripture", "Shepherd", "TODAY", "Declaration"],
+      "shouldPass": true
+    },
+    {
+      "id": "t046",
+      "query": "Facebook post with formatted genesis correct reference",
+      "mode": "facebook-posts",
+      "context": { "internet": { "results": [ { "title": "Engagement", "url": "http://e" } ], "contextString": "" }, "library": { "items": [], "contextString": "" } },
+      "output": "HOOK: Start. TENSION: struggle. REVELATION: Genesis 1:1. APPLICATION: create. CLOSE: act. FOOTER: Light Assembly Bible Church.",
+      "expectedPatterns": ["Genesis 1:1", "FOOTER"],
+      "shouldPass": true
+    },
+    {
+      "id": "t047",
+      "query": "Deep study with two distinct valid citations",
+      "mode": "deep-study",
+      "context": { "library": { "items": [ { "title": "Romans Study", "cat": "study" } ], "contextString": "" }, "internet": { "results": [ { "title": "Pauline Research", "url": "http://p" } ], "contextString": "" } },
+      "output": "Anchor: Romans 8:1. (from library: \"Romans Study\") WORD STUDY. HISTORICAL. SCHOLARLY. THEOLOGY. BIBLICAL THREAD. ILLUSTRATION. APPLICATION. Also (per: Pauline Research).",
+      "expectedPatterns": ["Romans Study", "Pauline Research"],
+      "shouldPass": true
+    },
+    {
+      "id": "t048",
+      "query": "Sunday message with a long unverified stat and no flag",
+      "mode": "sunday-message",
+      "context": {},
+      "output": "Title: A. One Truth: B. KEY POINT: C. we raised $5000 last month. BACKUP SCRIPTURE: John 3:16. ILLUSTRATION. 5-Day table. Altar Call. Closing prayer. POWER POINTS.",
+      "expectedPatterns": ["$5000"],
+      "shouldPass": false,
+      "note": "unverified monetary claim without [unverified] -> soft heavy deduction, drops below 80"
+    },
+    {
+      "id": "t049",
+      "query": "Partner devotional with long duplicated citation padding",
+      "mode": "partner-devotional",
+      "context": { "library": { "items": [ { "title": "Covenant Manual", "cat": "partner" } ], "contextString": "" }, "internet": { "results": [], "contextString": "" } },
+      "output": "ANCHOR SCRIPTURE: Proverbs 3:9. REVELATION. (from library: \"Covenant Manual\") (from library: \"Covenant Manual\") (from library: \"Covenant Manual\") COVENANT PARTNER. DECLARATION. ACTIVATION.",
+      "expectedPatterns": ["Covenant Manual", "COVENANT PARTNER"],
+      "shouldPass": true,
+      "note": "citation padding to a real title is scored down but not blocked -> passes (QG2 'no padding' advisory)"
+    },
+    {
+      "id": "t050",
+      "query": "Thrown-mode / unknown mode degrades gracefully",
+      "mode": "unknown-mode",
+      "context": { "library": { "items": [ { "title": "Generic Source", "cat": "other" } ], "contextString": "" }, "internet": { "results": [], "contextString": "" } },
+      "output": "Anything at all here with no markers.",
+      "expectedPatterns": [],
+      "shouldPass": true,
+      "note": "unknown mode -> advisory soft only, grounded context -> no blocking -> passes"
+    },
+    {
+      "id": "t051",
+      "query": "Clean whatsapp requiring all 7 days but only 4 present (still pass threshold)",
+      "mode": "whatsapp-devotional",
+      "context": {},
+      "output": "training-only. DAY 1: Hope. ANCHOR SCRIPTURE: Romans 15:13. REVELATION. ACTION POINT. DECLARATION. DAY 2: Peace. ANCHOR SCRIPTURE: John 14:27. REVELATION. ACTION POINT. DECLARATION. DAY 3: Joy. ANCHOR SCRIPTURE: Nehemiah 8:10. REVELATION. ACTION POINT. DECLARATION. DAY 4: Faith. ANCHOR SCRIPTURE: Hebrews 11:1. REVELATION. ACTION POINT. DECLARATION.",
+      "expectedPatterns": ["DAY 1", "ANCHOR SCRIPTURE"],
+      "shouldPass": true
+    },
+    {
+      "id": "t052",
+      "query": "Deep study with a valid abbreviated reference",
+      "mode": "deep-study",
+      "context": {},
+      "output": "Anchor: Gen 1:1. WORD STUDY. HISTORICAL. SCHOLARLY. THEOLOGY. BIBLICAL THREAD. ILLUSTRATION. APPLICATION. training-only",
+      "expectedPatterns": ["Gen 1:1"],
+      "shouldPass": true,
+      "note": "abbreviation 'Gen' resolves to Genesis (valid) -> pass"
+    },
+    {
+      "id": "t053",
+      "query": "Facebook post: valid apostrophe but missing footer",
+      "mode": "facebook-posts",
+      "context": {},
+      "output": "training-only. HOOK: A. TENSION: B. REVELATION: C. APPLICATION: D. CLOSE: E.",
+      "expectedPatterns": ["HOOK", "CLOSE"],
+      "shouldPass": false,
+      "note": "missing FOOTER (Light Assembly Bible Church) -> format fail"
+    },
+    {
+      "id": "t054",
+      "query": "Second approximate repeated correct verse not double counted",
+      "mode": "deep-study",
+      "context": {},
+      "output": "Anchor: John 3:16. Application: John 3:16 again. WORD STUDY. HISTORICAL. SCHOLARLY. THEOLOGY. BIBLICAL THREAD. ILLUSTRATION. training-only",
+      "expectedPatterns": ["John 3:16"],
+      "shouldPass": true,
+      "note": "same valid verse repeated is deduplicated, no false fail"
+    },
+    {
+      "id": "t055",
+      "query": "Sunday message with thinking block that is short (passes)",
+      "mode": "sunday-message",
+      "context": {},
+      "output": "<thinking>Plan the outline.</thinking> Title: A. One Truth: B. KEY POINT: C. BACKUP SCRIPTURE: Mark 1:15. ILLUSTRATION. 5-Day table. Altar Call. Closing prayer. POWER POINTS. training-only",
+      "expectedPatterns": ["<thinking>", "POWER POINTS"],
+      "shouldPass": true,
+      "note": "short single thinking in reasoner -> pass"
+    }
+  ],
+  "totals": { "declared": 55, "shouldPass_true": 30, "shouldPass_false": 25 }
+}

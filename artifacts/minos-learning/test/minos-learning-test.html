@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MINOS Learning Engine — Test</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 2rem; max-width: 720px; }
+  pre { background: #f4f4f4; padding: .75rem; border-radius: 6px; overflow: auto; }
+  .pass { color: #1a7f37; font-weight: 600; }
+  .fail { color: #b42318; font-weight: 600; }
+  .row { margin: .25rem 0; }
+  button { margin: .25rem; }
+</style>
+</head>
+<body>
+  <h1>MINOS Learning Engine — Test Runner</h1>
+  <p>Pure browser test. No network. Runs CP2 sequence:
+     recordInteraction → getProfile → routerFeed → clearData.</p>
+  <div id="out"></div>
+
+  <script type="module">
+    import learningEngine from "../learning-engine.js";
+    import recommendationWidget from "../recommendation-widget.js";
+
+    const out = document.getElementById("out");
+    const results = [];
+    function report(name, pass, detail) {
+      results.push({ name, pass });
+      const row = document.createElement("div");
+      row.className = "row";
+      row.innerHTML = `<span class="${pass ? "pass" : "fail"}">${pass ? "PASS" : "FAIL"}</span> &nbsp;${name}${detail ? " — " + detail : ""}`;
+      out.appendChild(row);
+    }
+    function section(t) {
+      const h = document.createElement("h3");
+      h.textContent = t;
+      out.appendChild(h);
+    }
+
+    // 0. Fresh start (tests should run on empty/scrubbed localStorage).
+    learningEngine.clearData();
+
+    section("Pre-warm (0 interactions)");
+    (() => {
+      const p = learningEngine.getProfile();
+      report("profile loads without throwing", !p.error || !!(p.fallback), "");
+      report("empty profile schema shape", p.preferences && p.preferences.sourceTrust, "sourceTrust present");
+      report("with zero-arg fallback budget", !!(p.raw && p.raw.version === 1), "version 1");
+      const feed = learningEngine.routerFeed();
+      report("routerFeed ready=false pre-warm", feed.ready === false, "ready=" + feed.ready);
+      report("modeBoost empty pre-warm", Object.keys(feed.modeBoost || {}).length === 0, "boost len=" + Object.keys(feed.modeBoost || {}).length);
+      recommendationWidget.mount(out.parentElement, { mountId: "rec-test-pre" });
+      report("widget mounts pre-warm", !!document.getElementById("rec-test-pre"), "");
+    })();
+
+    // 1. Record 10+ interactions across modes/topics/sources.
+    section("Recording interactions");
+    (() => {
+      const events = [
+        { mode: "sunday-message", cat: "sermon", topics: ["psalms", "faith"], source: "sermon", completed: true },
+        { mode: "sermon-notes", cat: "notes", topics: ["psalms"], source: "commentary" },
+        { mode: "sunday-message", cat: "sermon", topics: ["faith"], source: "sermon", completed: true },
+        { mode: "whatsapp-devotional", cat: "whatsapp", topics: ["prayer"], source: "devotional" },
+        { mode: "sermon-notes", cat: "notes", topics: ["psalms", "worship"], source: "commentary" },
+        { mode: "deep-study", cat: "study", topics: ["greek", "psalms"], source: "lexicon", completed: true },
+        { mode: "sunday-message", cat: "sermon", topics: ["faith", "worship"], source: "sermon", completed: true },
+        { mode: "prayer-guide", cat: "prayer", topics: ["prayer"], source: "prayer-ministry" },
+        { mode: "facebook-posts", cat: "facebook", topics: ["engagement"], source: "content-pattern" },
+        { mode: "sunday-message", cat: "sermon", topics: ["faith"], source: "sermon", completed: true },
+        { mode: "partner-devotional", cat: "partner", topics: ["stewardship"], source: "covenant", completed: true },
+        { mode: "morning-brief", cat: "other", topics: ["calendar"], source: "calendar" },
+      ];
+      let allOk = true;
+      events.forEach((e) => {
+        const r = learningEngine.recordInteraction(e);
+        allOk = allOk && r.ok;
+      });
+      report("recorded 12 interactions", allOk, "");
+      report("interactionCount === 12", learningEngine.interactionCount() === 12, "count=" + learningEngine.interactionCount());
+    })();
+
+    // 2. Profile now warm.
+    section("Warm profile");
+    (() => {
+      const p = learningEngine.getProfile();
+      report("ready === true", (p.recommendations.ready === true), "ready=" + p.recommendations.ready);
+      report("sunday-message top mode", Array.isArray(p.preferences.preferredModes) && p.preferences.preferredModes[0] === "sunday-message", "top=" + (p.preferences.preferredModes||[])[0]);
+      report("sermon preferred source", (p.preferences.preferredSources || []).includes("sermon"), "sources=" + JSON.stringify(p.preferences.preferredSources));
+      report("psalms topic affinity", (p.preferences.topicAffinities || {}).psalms > 0, "affinity=" + (p.preferences.topicAffinities||{}).psalms);
+      const feed = learningEngine.routerFeed();
+      report("routerFeed ready=true", feed.ready === true, "");
+      report("modeBoost has sunday-message", (feed.modeBoost || {})["sunday-message"] > 0, "boost=" + (feed.modeBoost||{})["sunday-message"]);
+      report("sourceBoost present in weights", (p.weights.sourceBoost && p.weights.sourceBoost["sunday-message"]) > 0, "");
+    })();
+
+    // 3. Widget renders recommendations + clear.
+    section("Widget");
+    (() => {
+      const mountRes = recommendationWidget.mount(document.body, { mountId: "rec-warm" });
+      report("widget mounts warm", mountRes.ok && !!document.getElementById("rec-warm"), "");
+      const hasRec = !!document.querySelector("#rec-warm .minos-rec-body .minos-rec-section");
+      report("recommendations sections rendered", hasRec, "");
+      report("clear button present", !!document.querySelector("#rec-warm [data-action='clear']"), "");
+      // Clear via engine directly (integration).
+      const cleared = learningEngine.clearData();
+      report("clearData wipes", cleared.ok && learningEngine.interactionCount() === 0, "cleared=" + cleared.clearedInteractions);
+      report("preferences empty after clear", Object.keys(learningEngine.getProfile().preferences.sourceTrust).length === 0, "");
+    })();
+
+    section("Summary");
+    const passCount = results.filter((r) => r.pass).length;
+    const s = document.createElement("p");
+    s.innerHTML = `<strong>${passCount}/${results.length} passed.</strong>`;
+    if (passCount === results.length) { s.className = "pass"; } else { s.className = "fail"; }
+    out.appendChild(s);
+
+    window.minosLearningTestResults = results;
+  </script>
+</body>
+</html>
