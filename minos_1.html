@@ -838,7 +838,7 @@ document.querySelectorAll('.qbtn').forEach(function(btn){
 // == CHAT ==
 function pickModel(text){
   var t=(text||'').toLowerCase();
-  if(t.includes('deep study')||t.includes('greek')||t.includes('hebrew')||t.includes('scholarly')||t.includes('scholars')||t.includes('theology')||t.includes('theological')||t.includes('sunday message')||t.includes('sermon notes')||t.includes('rebuild series')||t.includes('full sermon'))return DS_REASON;
+  if(t.includes('deep study')||t.includes('greek')||t.includes('hebrew')||t.includes('scholarly')||t.includes('scholars')||t.includes('theology')||t.includes('theological')||t.includes('sunday message')||t.includes('sermon notes')||t.includes('sermon series')||t.includes('full sermon'))return DS_REASON;
   return DS_CHAT;
 }
 
@@ -1421,7 +1421,7 @@ document.querySelectorAll('.qbtn').forEach(function(btn){
     if(!prompt)return;
     var inp=document.getElementById('chatInp');
     // Buttons that need topic input -- drop into box with cursor ready
-    var needTopic=['facebook','whatsapp','sunday','notes','partner','prayer','study','rebuild'];
+    var needTopic=['facebook','whatsapp','sunday','notes','partner','prayer','study','series'];
     if(needTopic.indexOf(q)>-1){
       inp.value=prompt;
       inp.style.height='auto';
