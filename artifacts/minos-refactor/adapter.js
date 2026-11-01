@@ -781,6 +781,23 @@
     return safeJSONParse(raw, null);
   }
 
+  function houseMemoryContext() {
+    var raw = readLocal('minos_house_memory_v1');
+    var m = safeJSONParse(raw, {});
+    if (!m || typeof m !== 'object') return '';
+    var fields = [
+      ['CHURCH VISION & MISSION', m.vision],
+      ['DOCTRINE & BOUNDARIES', m.doctrine],
+      ['CURRENT THEME OR SERIES', m.series],
+      ['HOUSE VOICE & STYLE', m.style],
+      ['CURRENT PASTORAL FOCUS', m.focus]
+    ].filter(function (pair) { return String(pair[1] || '').trim(); });
+    if (!fields.length) return '';
+    var lines = ['# HOUSE MEMORY — PASTOR-CONFIGURED', 'Treat this as trusted church context. Honour it whenever relevant; do not invent details beyond it.'];
+    fields.forEach(function (pair) { lines.push('', '## ' + pair[0], String(pair[1]).trim().slice(0, 1800)); });
+    return lines.join('\n');
+  }
+
   /* ===================================================================== *
    * 8) BOUNDED RETRY — rebuild step for assembleContext + prompt.
    * ===================================================================== */
@@ -807,6 +824,8 @@
           var cfg = MODE_CONFIG.modes[mode];
           var profile = readProfile();
           var sys = buildSystemPrompt(mode, ctx.sources, profile);
+          var houseMemory = houseMemoryContext();
+          if (houseMemory) sys += '\n\n' + houseMemory;
           var model = ctx.sources.config && ctx.sources.config.model ? ctx.sources.config.model : ((cfg && cfg.model) || 'deepseek-chat');
           var used = ctx.sources.used || [];
           resolve({ systemPrompt: sys, mode: mode, model: model, context: ctx.sources, used: used,
