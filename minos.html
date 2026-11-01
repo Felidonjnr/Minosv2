@@ -461,6 +461,12 @@ body{font-family:'Source Serif 4',serif;font-size:17px;line-height:1.6;backgroun
     <label class="sht-lbl">Google Cloud TTS Key (Read Aloud)</label>
     <input class="sht-inp" id="settingsGcp" type="password" placeholder="AIzaSy...">
     <div style="font-size:12px;color:var(--text3);margin-bottom:4px">Get from console.cloud.google.com &rarr; Cloud Text-to-Speech API</div>
+    <label class="sht-lbl">Brave Search API Key (Live Web Search)</label>
+    <input class="sht-inp" id="settingsBrave" type="password" placeholder="BSA...">
+    <div style="font-size:12px;color:var(--text3);margin-bottom:4px">Optional. MINOS searches the web before generating when this key is saved.</div>
+    <label class="sht-lbl">Google Programmable Search (Alternative)</label>
+    <input class="sht-inp" id="settingsGoogleSearch" type="password" placeholder="API key">
+    <input class="sht-inp" id="settingsGoogleCx" type="text" placeholder="Search engine ID" style="margin-top:8px">
     <button class="sht-save" id="settingsSave">Save &amp; Reload</button>
     <div style="margin-top:24px;border-top:2px solid var(--border);padding-top:18px">
       <div class="sht-lbl" style="margin-top:0">AI Prompt Updater</div>
@@ -1099,6 +1105,9 @@ function saveFile(text,title){
 document.getElementById('settingsBtn').addEventListener('click',function(){
   document.getElementById('settingsKey').value=getKey();
   document.getElementById('settingsGcp').value=getGcp();
+  document.getElementById('settingsBrave').value=ls('minos_brave_key');
+  document.getElementById('settingsGoogleSearch').value=ls('minos_google_key');
+  document.getElementById('settingsGoogleCx').value=ls('minos_google_cx');
   document.getElementById('settingsOv').classList.add('on');
 });
 document.getElementById('settingsClose').addEventListener('click',function(){
@@ -1110,8 +1119,14 @@ document.getElementById('settingsOv').addEventListener('click',function(e){
 document.getElementById('settingsSave').addEventListener('click',function(){
   var k=document.getElementById('settingsKey').value.trim();
   var gcp=document.getElementById('settingsGcp').value.trim();
+  var brave=document.getElementById('settingsBrave').value.trim();
+  var googleSearch=document.getElementById('settingsGoogleSearch').value.trim();
+  var googleCx=document.getElementById('settingsGoogleCx').value.trim();
   if(k)lss('minos_ds_ak',k);
   if(gcp)lss('minos_gcp',gcp);
+  if(brave)lss('minos_brave_key',brave);
+  if(googleSearch)lss('minos_google_key',googleSearch);
+  if(googleCx)lss('minos_google_cx',googleCx);
   document.getElementById('settingsOv').classList.remove('on');
   toast('Saved -- reloading...');
   setTimeout(function(){location.reload();},1200);
@@ -1541,6 +1556,6 @@ document.getElementById('promptUpdateBtn').addEventListener('click',function(){
 setTimeout(function(){if(supabase)loadCustomPrompt();},2000);
 
 </script>
-<script src="/MINOS/artifacts/minos-refactor/door-sync.js" defer></script>
+<script src="artifacts/minos-refactor/door-sync.js" defer></script>
 </body>
 </html>

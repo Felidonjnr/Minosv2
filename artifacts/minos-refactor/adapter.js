@@ -439,6 +439,73 @@
     return { results: results, contextString: lines.join('\n'), meta: { provider: 'stub' } };
   }
 
+  function formatInternetContext(results) {
+    if (!results.length) return '';
+    var lines = ['INTERNET RESOURCES FOUND:', '---'];
+    results.forEach(function (r, i) {
+      lines.push('[' + (i + 1) + '] ' + r.title + ' â€” ' + r.url);
+      if (r.snippet) lines.push(r.snippet);
+    });
+    lines.push('---', 'Prioritise these internet resources where credible and relevant. Cite the source clearly.');
+    return lines.join('\n');
+  }
+
+  function fetchJson(url, options) {
+    var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = controller ? setTimeout(function () { controller.abort(); }, 8000) : null;
+    var init = options || {};
+    if (controller) init.signal = controller.signal;
+    return fetch(url, init).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).finally(function () { if (timer) clearTimeout(timer); });
+  }
+
+  function bibleResult(query) {
+    var match = String(query || '').match(/\b(?:[1-3]\s*)?[A-Za-z]+(?:\s+[A-Za-z]+)?\s+\d{1,3}:\d{1,3}(?:\s*[-â€“]\s*\d{1,3})?\b/);
+    if (!match) return Promise.resolve(null);
+    var ref = match[0];
+    return fetchJson('https://bible-api.com/' + encodeURIComponent(ref) + '?translation=kjv')
+      .then(function (data) {
+        if (!data || !data.text) return null;
+        return { title: 'Bible passage â€” ' + (data.reference || ref), url: 'https://bible-api.com/' + encodeURIComponent(ref), snippet: String(data.text).replace(/\s+/g, ' ').trim().slice(0, 700), source: 'bible-api' };
+      }).catch(function () { return null; });
+  }
+
+  function liveInternetSearch(query, mode, cfg) {
+    var fallback = internetSearch(query, mode, cfg);
+    var braveKey = readLocal('minos_brave_key');
+    var googleKey = readLocal('minos_google_key');
+    var googleCx = readLocal('minos_google_cx');
+    var k = (cfg.search && cfg.search.internetTopK) || MODE_CONFIG.defaults.internetTopK;
+    var live = Promise.resolve([]);
+    if (braveKey) {
+      live = fetchJson('https://api.search.brave.com/res/v1/web/search?q=' + encodeURIComponent(query) + '&count=' + k + '&safesearch=moderate', { headers: { Accept: 'application/json', 'X-Subscription-Token': braveKey } })
+        .then(function (data) { return ((data.web && data.web.results) || []).slice(0, k).map(function (r) { return { title: String(r.title || ''), url: String(r.url || ''), snippet: String(r.description || r.snippet || '').slice(0, 300), source: 'brave' }; }); }).catch(function () { return []; });
+    } else if (googleKey && googleCx) {
+      live = fetchJson('https://www.googleapis.com/customsearch/v1?key=' + encodeURIComponent(googleKey) + '&cx=' + encodeURIComponent(googleCx) + '&q=' + encodeURIComponent(query) + '&num=' + Math.min(k, 10))
+        .then(function (data) { return (data.items || []).slice(0, k).map(function (r) { return { title: String(r.title || ''), url: String(r.link || ''), snippet: String(r.snippet || '').slice(0, 300), source: 'google' }; }); }).catch(function () { return []; });
+    }
+    return Promise.all([live, bibleResult(query)]).then(function (parts) {
+      var results = parts[0].filter(function (r) { return r.title && r.url; });
+      if (parts[1]) results.push(parts[1]);
+      if (!results.length) return fallback;
+      results = results.slice(0, k);
+      return { results: results, contextString: formatInternetContext(results), meta: { provider: results[0].source, live: true } };
+    });
+  }
+
+  function assembleLiveContext(query, mode, opts) {
+    var base = assembleContext(query, mode, Object.assign({}, opts || {}, { loadInternet: false }));
+    return liveInternetSearch(query, base.sources.mode, base.sources.config).then(function (internet) {
+      var sources = base.sources;
+      sources.internet = internet;
+      if (internet.contextString) sources.used.push('internet');
+      if (!sources.library.contextString && !internet.contextString) sources.used.push('trainingOnly');
+      return { fullContext: [sources.systemBase, sources.library.contextString, internet.contextString, sources.modeModifier].filter(Boolean).join('\n'), sources: sources };
+    });
+  }
+
   /* ===================================================================== *
    * 5) PROMPT ARCHITECT — port of system-prompt.js (browser, fs-free)
    * ===================================================================== */
@@ -735,26 +802,19 @@
         var hostSystem = null;
         try { if (typeof root.buildSYS === 'function') hostSystem = root.buildSYS(); } catch (e) {}
 
-        var ctx = assembleContext(query, modeHint, { items: hostItems, systemBase: hostSystem });
-        var mode = resolveMode(modeHint, query);
-        var cfg = MODE_CONFIG.modes[mode];
-        var profile = readProfile();
-        var sys = buildSystemPrompt(mode, ctx.sources, profile);
-        var model = ctx.sources.config && ctx.sources.config.model ? ctx.sources.config.model : ((cfg && cfg.model) || 'deepseek-chat');
-
-        // Fallback flag: if no library/internet made it in, we're training-only.
-        var used = ctx.sources.used || [];
-        var fallback = used.length === 0 || used.indexOf('trainingOnly') !== -1;
-
-        resolve({
-          systemPrompt: sys,
-          mode: mode,
-          model: model,
-          context: ctx.sources,
-          used: used,
-          fallback: fallback,
-          attempt: attempt,
-          assemblyMs: Date.now() - t0
+        assembleLiveContext(query, modeHint, { items: hostItems, systemBase: hostSystem }).then(function (ctx) {
+          var mode = resolveMode(modeHint, query);
+          var cfg = MODE_CONFIG.modes[mode];
+          var profile = readProfile();
+          var sys = buildSystemPrompt(mode, ctx.sources, profile);
+          var model = ctx.sources.config && ctx.sources.config.model ? ctx.sources.config.model : ((cfg && cfg.model) || 'deepseek-chat');
+          var used = ctx.sources.used || [];
+          resolve({ systemPrompt: sys, mode: mode, model: model, context: ctx.sources, used: used,
+            fallback: used.length === 0 || used.indexOf('trainingOnly') !== -1, attempt: attempt, assemblyMs: Date.now() - t0 });
+        }).catch(function () {
+          var legacy = hostSystem || 'You are MINOS, ministry assistant for Rev. Emmanuel Udoh.';
+          resolve({ systemPrompt: legacy, mode: resolveMode(modeHint, query), model: 'deepseek-chat',
+            context: { used: ['trainingOnly'], library: { items: [] }, internet: { results: [] } }, used: ['trainingOnly'], fallback: true, attempt: attempt, assemblyMs: Date.now() - t0 });
         });
       } catch (err) {
         // Bounded retry before hard fallback.
