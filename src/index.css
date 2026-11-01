@@ -1,0 +1,210 @@
+@import "tailwindcss";
+
+:root {
+  --navy: #1e3a8a;
+  --navy2: #1a4fa8;
+  --gold: #b45309;
+  --gold-bg: #fef3c7;
+  --white: #ffffff;
+  --black: #000000;
+  --grey: #f5f7fa;
+  --grey2: #eef1f6;
+  --text: #000000;
+  --text2: #1e293b;
+  --text3: #475569;
+  --border: #e2e8f0;
+  --border2: #cbd5e1;
+  --green: #15803d;
+  --red: #dc2626;
+  --blue-light: #dbeafe;
+  --blue-pale: #eff6ff;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 16px;
+  line-height: 1.6;
+  background-color: var(--white);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-serif-heading {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.font-serif-body {
+  font-family: 'Source Serif 4', Georgia, serif;
+}
+
+/* Category Badge and Stripe styles */
+.cat-sermon { background: #dbeafe; color: #1e3a8a; }
+.stripe-sermon { background: #1e3a8a; }
+
+.cat-notes { background: #fef3c7; color: #92400e; }
+.stripe-notes { background: #d97706; }
+
+.cat-whatsapp { background: #dcfce7; color: #14532d; }
+.stripe-whatsapp { background: #16a34a; }
+
+.cat-facebook { background: #dbeafe; color: #1e40af; }
+.stripe-facebook { background: #2563eb; }
+
+.cat-partner { background: #ffedd5; color: #9a3412; }
+.stripe-partner { background: #ea580c; }
+
+.cat-prayer { background: #f3e8ff; color: #6b21a8; }
+.stripe-prayer { background: #9333ea; }
+
+.cat-study { background: #cffafe; color: #164e63; }
+.stripe-study { background: #0891b2; }
+
+.cat-other { background: #f1f5f9; color: #475569; }
+.stripe-other { background: #64748b; }
+
+/* Markdown Typography */
+.prose-minos h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.65rem;
+  font-weight: 900;
+  color: #000;
+  margin-top: 1.25rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 3px solid #dbeafe;
+}
+
+.prose-minos h2 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #000;
+  margin-top: 1.15rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.prose-minos h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin-top: 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.prose-minos p {
+  font-size: 1.02rem;
+  line-height: 1.8;
+  color: #000;
+  margin-bottom: 0.85rem;
+}
+
+.prose-minos strong {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.prose-minos em {
+  font-style: italic;
+  color: #1e293b;
+}
+
+.prose-minos blockquote {
+  border-left: 5px solid #1a4fa8;
+  background: #eff6ff;
+  padding: 0.85rem 1.15rem;
+  border-radius: 0 10px 10px 0;
+  margin: 0.95rem 0;
+}
+
+.prose-minos blockquote p {
+  margin: 0;
+  font-style: italic;
+  color: #1e3a8a;
+  font-weight: 600;
+}
+
+.prose-minos ul, .prose-minos ol {
+  padding-left: 1.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.prose-minos li {
+  font-size: 1rem;
+  line-height: 1.75;
+  margin-bottom: 0.35rem;
+}
+
+.prose-minos hr {
+  border: none;
+  border-top: 2px solid #e2e8f0;
+  margin: 1.25rem 0;
+}
+
+.prose-minos table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.95rem;
+}
+
+.prose-minos th {
+  background: #1e3a8a;
+  color: #fff;
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.prose-minos td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #000;
+}
+
+.prose-minos tr:nth-child(even) td {
+  background: #eff6ff;
+}
+
+.prose-minos code {
+  background: #eff6ff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: #1e3a8a;
+}
+
+/* Custom scrollbars */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.pulse-dot {
+  animation: pulse-subtle 0.8s infinite;
+}

@@ -1,0 +1,8 @@
+{
+  "name": "MINOS - Light Assembly Bible Church",
+  "description": "Ministry Intelligence & Operational System for Light Assembly Bible Church, Ikot Ambon, Akwa Ibom. Serving Rev. Emmanuel Udoh with sermons, deep study, devotionals, library memory, and pastoral planning.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
